@@ -1,0 +1,34 @@
+---
+import Parser from 'rss-parser';
+
+const { url }: Props = Astro.props;
+let parser = new Parser();
+
+interface Props {
+  url: String;
+}
+
+let feedItems = [];
+let user = "";
+
+try {
+  let feed = await parser.parseURL(url);
+  feedItems = feed.items;
+  user = feed.title;
+  console.log("feedItems", feedItems);
+} catch (error) {
+  console.log(error);
+}
+
+
+---
+
+<div>
+  <h1>{user}</h1>
+  {feedItems.map((item) => (
+    <div>
+      <h2>{item.title}</h2>
+      <div set:html={item.content} />
+    </div>
+  ))}
+</div>
