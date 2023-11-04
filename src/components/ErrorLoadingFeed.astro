@@ -1,0 +1,11 @@
+---
+interface Props {
+  classList?: {
+    error_loading_feed?: string;
+  };
+}
+
+const { classList = {} } = Astro.props;
+---
+
+<p class={classList?.error_loading_feed}>Error loading feed</p>

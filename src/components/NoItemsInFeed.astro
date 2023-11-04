@@ -1,0 +1,11 @@
+---
+interface Props {
+  classList?: {
+    no_items_in_feed?: string;
+  };
+}
+
+const { classList = {} } = Astro.props;
+---
+
+<p class={classList?.no_items_in_feed}>No items in feed</p>

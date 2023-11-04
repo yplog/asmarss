@@ -1,0 +1,47 @@
+---
+interface Props {
+  pubDate: string;
+  content: string;
+  link: string;
+  classList?: {
+    toot?: string;
+    toot__header?: string;
+    toot__header__date?: string;
+    toot__content?: string;
+    toot__footer?: string;
+    toot__footer__link?: string;
+  };
+}
+
+const { pubDate, content, link, classList } = Astro.props;
+
+let date = new Date(pubDate);
+let dateString = date.toDateString();
+let timeString = date.toLocaleTimeString([], {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+---
+
+<div class={classList?.toot}>
+  <div class={classList?.toot__header}>
+    <div class={classList?.toot__header__date}>
+      <p>
+        {dateString} at {timeString}
+      </p>
+    </div>
+  </div>
+  <div>
+    <div class={classList?.toot__content} set:html={content} />
+  </div>
+  <div class={classList?.toot__footer}>
+    <a
+      class={classList?.toot__footer__link}
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View on Mastodon
+    </a>
+  </div>
+</div>
