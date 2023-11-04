@@ -1,6 +1,6 @@
 {
   "name": "asmarss",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed.",
   "author": {
     "name": "Yalın Pala",
