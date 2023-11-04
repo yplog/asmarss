@@ -1,5 +1,7 @@
 # asmarss
 
+[![npm version](https://badge.fury.io/js/asmarss.svg)](https://badge.fury.io/js/asmarss)
+
 A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed in a Astro Component.
 
 ## Installation
@@ -7,7 +9,7 @@ A package that enables tracking the most recent posts of a Mastodon account and 
 In your Astro project, run:
 
 ```bash
-npm install asmarss
+npm i asmarss
 ```
 
 ## Usage
@@ -39,7 +41,7 @@ import Asmarss from 'asmarss';
 <Asmarss url={"https://mastodon-instance/@username.rss"}>
 
 <Asmarss 
-  url={"https://mastodon-instance/@username.rss"} 
+  url={"https://mastodon.instance/@username.rss"} 
   classList={{
     toot__content: "global-text-color global-font-size",
   }} 
