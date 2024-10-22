@@ -1,0 +1,33 @@
+{
+  "name": "asmarss",
+  "version": "0.1.1",
+  "description": "A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed.",
+  "author": {
+    "name": "Yalın Pala",
+    "url": "https://yalinpala.dev"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yplog/asmarss"
+  },
+  "keywords": [
+    "astro",
+    "mastodon",
+    "astro-component",
+    "rss"
+  ],
+  "main": "src/index.astro",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "astro": "^4.16.7",
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}
