@@ -1,3 +1,5 @@
+
+
 # asmarss
 
 [![npm version](https://badge.fury.io/js/asmarss.svg)](https://badge.fury.io/js/asmarss)
@@ -38,7 +40,7 @@ In your Astro file:
 import Asmarss from 'asmarss';
 ---
 
-<Asmarss url={"https://mastodon-instance/@username.rss"}>
+<Asmarss url={"https://mastodon-instance/@username.rss"} />
 
 <Asmarss 
   url={"https://mastodon.instance/@username.rss"} 
