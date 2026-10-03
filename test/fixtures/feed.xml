@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test User</title>
+    <link>https://example.social/@test</link>
+    <item>
+      <guid>https://example.social/@test/2</guid>
+      <link>https://example.social/@test/2</link>
+      <pubDate>Fri, 03 Oct 2025 10:00:00 +0000</pubDate>
+      <description>&lt;p&gt;Second toot&lt;/p&gt;</description>
+    </item>
+    <item>
+      <guid>https://example.social/@test/1</guid>
+      <link>https://example.social/@test/1</link>
+      <pubDate>Thu, 02 Oct 2025 09:30:00 +0000</pubDate>
+      <description>&lt;p&gt;First toot&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

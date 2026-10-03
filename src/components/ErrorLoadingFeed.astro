@@ -1,11 +1,11 @@
 ---
+import type { ClassList } from "../types";
+
 interface Props {
-  classList?: {
-    error_loading_feed?: string;
-  };
+  classList?: ClassList;
 }
 
 const { classList = {} } = Astro.props;
 ---
 
-<p class={classList?.error_loading_feed}>Error loading feed</p>
+<p class={classList.error_loading_feed}>Error loading feed</p>
