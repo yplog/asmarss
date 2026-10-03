@@ -1,74 +1,53 @@
 ---
-import Parser from "rss-parser";
 import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
-
-type ClassList = {
-  separator?: string;
-  error_loading_feed?: string;
-  no_items_in_feed?: string;
-  see_more?: string;
-  toot?: string;
-  toot__header?: string;
-  toot__header__date?: string;
-  toot__content?: string;
-  toot__footer?: string;
-  toot__footer__link?: string;
-};
+import { parseFeed } from "./lib/parseFeed";
+import type { ClassList } from "./types";
 
 interface Props {
   url: string;
   classList?: ClassList;
+  limit?: number;
+  separator?: boolean;
+  /** @deprecated Misspelled, use `separator` instead. */
   seperator?: boolean;
 }
 
-const { url, classList = {}, seperator = false }: Props = Astro.props;
-
-async function parseFeed(url: string) {
-  let parser = new Parser();
-
-  try {
-    let feed = await parser.parseURL(url);
-    return { items: feed.items, link: feed.link };
-  } catch (error) {
-    return { items: null, link: null };
-  }
-}
+const { url, classList = {}, limit, separator, seperator }: Props = Astro.props;
+const showSeparator = separator ?? seperator ?? false;
 
 const { items, link } = await parseFeed(url);
+const visibleItems =
+  items && limit !== undefined ? items.slice(0, limit) : items;
 ---
 
 <section>
-  {
-    !items ? (
-      <ErrorLoadingFeed classList={classList} />
-    ) : items.length === 0 ? (
-      <NoItemsInFeed classList={classList} />
-    ) : (
-      items.map((item) => (
-        <div>
-          <FeedItem
-            link={item.link || ""}
-            pubDate={item.pubDate || ""}
-            content={item.content || ""}
-            classList={classList}
-          />
-          {seperator && <hr class={classList?.separator} />}
-        </div>
-      ))
-    )
-  }
-  {
-    link && (
-      <a
-        class={classList?.see_more}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        See more
-      </a>
-    )
-  }
+  {!visibleItems ? (
+    <ErrorLoadingFeed classList={classList} />
+  ) : visibleItems.length === 0 ? (
+    <NoItemsInFeed classList={classList} />
+  ) : (
+    visibleItems.map((item) => (
+      <div>
+        <FeedItem
+          link={item.link}
+          pubDate={item.pubDate}
+          content={item.content}
+          classList={classList}
+        />
+        {showSeparator && <hr class={classList.separator} />}
+      </div>
+    ))
+  )}
+  {link && (
+    <a
+      class={classList.see_more}
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      See more
+    </a>
+  )}
 </section>

@@ -1,11 +1,11 @@
 ---
+import type { ClassList } from "../types";
+
 interface Props {
-  classList?: {
-    no_items_in_feed?: string;
-  };
+  classList?: ClassList;
 }
 
 const { classList = {} } = Astro.props;
 ---
 
-<p class={classList?.no_items_in_feed}>No items in feed</p>
+<p class={classList.no_items_in_feed}>No items in feed</p>

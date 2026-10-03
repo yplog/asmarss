@@ -1,5 +1,3 @@
-
-
 # asmarss
 
 [![npm version](https://badge.fury.io/js/asmarss.svg)](https://badge.fury.io/js/asmarss)
@@ -16,10 +14,14 @@ npm i asmarss
 
 ## Usage
 
-Asmarss component take 3 props url, classList (optional), seperate (optional)
-  - url: the url of the Mastodon account you want to track
-  - classList: the class you want to add to the component
-  - seperate: if you want to seperate the posts in hr element, default value is false
+| Prop        | Type        | Default | Description                                                    |
+| ----------- | ----------- | ------- | -------------------------------------------------------------- |
+| `url`       | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`) |
+| `classList` | `ClassList` | `{}`    | CSS classes to add to the rendered elements                    |
+| `limit`     | `number`    | all     | Maximum number of posts to render                              |
+| `separator` | `boolean`   | `false` | Render an `<hr>` after each post                               |
+
+> `seperator` (the old, misspelled name) still works but is deprecated.
 
 For example css file:
 
@@ -42,17 +44,17 @@ import Asmarss from 'asmarss';
 
 <Asmarss url={"https://mastodon-instance/@username.rss"} />
 
-<Asmarss 
-  url={"https://mastodon.instance/@username.rss"} 
+<Asmarss
+  url={"https://mastodon.instance/@username.rss"}
   classList={{
     toot__content: "global-text-color global-font-size",
-  }} 
-  seperate={true} />
+  }}
+  separator={true} />
 ```
 
 ClassList is an object that contains the classes you want to add to the component, the default value is:
 
-```ts 
+```ts
 type ClassList = {
   separator?: string; // the class of the hr element
   error_loading_feed?: string; // the class of the error message
@@ -67,22 +69,28 @@ type ClassList = {
 };
 ```
 
+## Requirements
+
+`astro` >= 4 is a peer dependency. The feed is fetched on the server at build/render time using the built-in `fetch`.
+
+## Security
+
+Post content is rendered as raw HTML (`set:html`). Mastodon sanitizes it on the server side, but only point `url` at instances you trust.
+
 ## Contributing
 
 If you would like to contribute to this project, please follow the steps below:
 
-  - Fork this project.
-  - Create a new branch: git checkout -b my-new-feature.
-  - Make changes and commit them: git commit -am 'Add some feature'.
-  - Push to the branch: git push origin my-new-feature.
-  - Create a new pull request (PR).
-
+- Fork this project.
+- Create a new branch: git checkout -b my-new-feature.
+- Make changes and commit them: git commit -am 'Add some feature'.
+- Push to the branch: git push origin my-new-feature.
+- Create a new pull request (PR).
 
 ## License
 
 This project is licensed under the MIT License. Please refer to the license file for details.
 
-
 ## Dependencies
 
-* [rss-parser](https://github.com/rbren/rss-parser#readme) - A small library for turning RSS XML feeds into JavaScript objects.
+- [rss-parser](https://github.com/rbren/rss-parser#readme) - A small library for turning RSS XML feeds into JavaScript objects.
