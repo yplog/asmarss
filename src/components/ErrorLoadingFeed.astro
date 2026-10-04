@@ -2,10 +2,11 @@
 import type { ClassList } from "../types";
 
 interface Props {
+  label: string;
   classList?: ClassList;
 }
 
-const { classList = {} } = Astro.props;
+const { label, classList = {} } = Astro.props;
 ---
 
-<p class={classList.error_loading_feed}>Error loading feed</p>
+<p class={classList.error_loading_feed}>{label}</p>
