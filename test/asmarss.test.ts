@@ -178,6 +178,6 @@ describe("Asmarss", () => {
     expect(html).toMatch(/<section[^>]*class="f"/);
     expect(html).toMatch(/<ul[^>]*class="fl"/);
     expect(html).toMatch(/<li[^>]*class="fi"/);
-    expect(html).toMatch(/<\/article><hr[^>]*><\/li>/);
+    expect(html).toMatch(/<\/article>\s*<hr[^>]*>\s*<\/li>/);
   });
 });
