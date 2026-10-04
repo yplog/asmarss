@@ -1,14 +1,18 @@
 ---
 import FeedMedia from "./FeedMedia.astro";
-import type { ClassList, FeedMedia as FeedMediaType } from "../types";
+import { formatDate } from "../lib/formatDate";
+import type { ClassList, FeedMedia as FeedMediaType, Labels } from "../types";
 
 interface Props {
   pubDate: string;
   content: string;
   link: string;
+  labels: Required<Labels>;
   media?: FeedMediaType[];
   tags?: string[];
   instanceUrl?: string | null;
+  locale?: string;
+  timeZone?: string;
   classList?: ClassList;
 }
 
@@ -16,9 +20,12 @@ const {
   pubDate,
   content,
   link,
+  labels,
   media = [],
   tags = [],
   instanceUrl,
+  locale,
+  timeZone,
   classList,
 } = Astro.props;
 
@@ -33,29 +40,25 @@ function tagHref(tag: string) {
 
 const date = new Date(pubDate);
 const hasDate = !Number.isNaN(date.getTime());
-const dateString = date.toDateString();
-const timeString = date.toLocaleTimeString([], {
-  hour: "2-digit",
-  minute: "2-digit",
-});
+const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
 ---
 
-<div class={classList?.toot}>
+<article class={classList?.toot}>
   {hasDate && (
-    <div class={classList?.toot__header}>
+    <header class={classList?.toot__header}>
       <div class={classList?.toot__header__date}>
-        <p>
-          <time datetime={date.toISOString()}>
-            {dateString} at {timeString}
-          </time>
-        </p>
+        <time datetime={date.toISOString()}>{dateString}</time>
       </div>
-    </div>
+    </header>
   )}
-  <div>
-    <div class={classList?.toot__content} set:html={content} />
-  </div>
-  {media.length > 0 && <FeedMedia media={media} classList={classList} />}
+  <div class={classList?.toot__content} set:html={content} />
+  {media.length > 0 && (
+    <FeedMedia
+      media={media}
+      sensitiveLabel={labels.sensitiveContent}
+      classList={classList}
+    />
+  )}
   {tags.length > 0 && (
     <ul class={classList?.toot__tags}>
       {tags.map((tag) => (
@@ -67,14 +70,14 @@ const timeString = date.toLocaleTimeString([], {
       ))}
     </ul>
   )}
-  <div class={classList?.toot__footer}>
+  <footer class={classList?.toot__footer}>
     <a
       class={classList?.toot__footer__link}
       href={link}
       target="_blank"
       rel="noopener noreferrer"
     >
-      View on Mastodon
+      {labels.viewOnMastodon}
     </a>
-  </div>
-</div>
+  </footer>
+</article>

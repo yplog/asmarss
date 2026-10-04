@@ -22,6 +22,9 @@ npm i asmarss
 | `separator` | `boolean`   | `false` | Render an `<hr>` after each post                               |
 | `media`     | `boolean`   | `true`  | Render attached images (with alt text), videos and audio       |
 | `tags`      | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages      |
+| `labels`    | `Labels`    | English | Override the built-in texts (see below)                        |
+| `locale`    | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                          |
+| `timeZone`  | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`               |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -58,6 +61,9 @@ ClassList is an object that contains the classes you want to add to the componen
 
 ```ts
 type ClassList = {
+  feed?: string; // the class of the root section
+  feed__list?: string; // the class of the post list (ul)
+  feed__item?: string; // the class of each list item (li)
   separator?: string; // the class of the hr element
   error_loading_feed?: string; // the class of the error message
   no_items_in_feed?: string; // the class of the no items message
@@ -82,6 +88,59 @@ import type { ClassList } from "asmarss/types";
 ```
 
 Posts marked as sensitive on Mastodon have their media wrapped in a collapsed `<details>` element.
+
+## Localization
+
+All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
+(without them the default `Sat Oct 04 2025 at 11:00 AM` format is kept):
+
+```html
+<Asmarss
+  url={"https://mastodon.instance/@username.rss"}
+  locale="tr-TR"
+  timeZone="Europe/Istanbul"
+  labels={{
+    seeMore: "Devamı",
+    viewOnMastodon: "Mastodon'da gör",
+    errorLoadingFeed: "Akış yüklenemedi",
+    noItemsInFeed: "Gönderi yok",
+    sensitiveContent: "Hassas içerik",
+  }} />
+```
+
+```ts
+import type { Labels } from "asmarss/types";
+```
+
+## Headless usage
+
+`asmarss/feed` exposes the parser, so you can render the posts yourself:
+
+```html
+---
+import { parseFeed, formatDate } from "asmarss/feed";
+
+const { items } = await parseFeed("https://mastodon.instance/@username.rss");
+---
+
+{items === null ? (
+<p>Could not load the feed.</p>
+) : (
+<ul>
+  {items.map((item) => (
+  <li>
+    <time>{formatDate(new Date(item.pubDate), { locale: "en-GB" })}</time>
+    <div set:html="{item.content}" />
+    {item.media.map((m) => <img src="{m.url}" alt="{m.description}" />)}
+  </li>
+  ))}
+</ul>
+)}
+```
+
+`items` is `null` when the request fails or the feed is invalid. Each entry has
+`link`, `pubDate`, `content` (HTML), `media` and `tags`. `parseFeed` accepts
+`{ timeoutMs }` as a second argument.
 
 ## Requirements
 

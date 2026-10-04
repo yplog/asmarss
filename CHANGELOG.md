@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0
+
+### Added
+
+- `labels` prop to override the built-in texts (`seeMore`, `viewOnMastodon`, `errorLoadingFeed`, `noItemsInFeed`, `sensitiveContent`).
+- `locale` and `timeZone` props for date formatting; the default format is unchanged when neither is set.
+- New `ClassList` keys: `feed`, `feed__list`, `feed__item`.
+- `asmarss/feed` export (`parseFeed`, `formatDate` and feed types) for rendering posts with your own markup.
+- `Labels` type.
+
+### Changed
+
+- Semantic markup: posts are now `<ul>/<li>` with an `<article>` containing `<header>` and `<footer>`; the extra wrapper `<div>`s were removed. Existing `classList` keys still apply to the same logical parts, but styles that target elements (e.g. `section > div`) may need updating.
+
 ## 0.3.0
 
 ### Added

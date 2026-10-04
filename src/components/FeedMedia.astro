@@ -3,10 +3,11 @@ import type { ClassList, FeedMedia } from "../types";
 
 interface Props {
   media: FeedMedia[];
+  sensitiveLabel: string;
   classList?: ClassList;
 }
 
-const { media, classList = {} } = Astro.props;
+const { media, sensitiveLabel, classList = {} } = Astro.props;
 ---
 
 <div class={classList.toot__media}>
@@ -46,7 +47,7 @@ const { media, classList = {} } = Astro.props;
 
     return m.sensitive ? (
       <details>
-        <summary>Sensitive content</summary>
+        <summary>{sensitiveLabel}</summary>
         {item}
       </details>
     ) : (

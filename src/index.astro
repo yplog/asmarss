@@ -3,7 +3,8 @@ import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
 import { parseFeed } from "./lib/parseFeed";
-import type { ClassList } from "./types";
+import { defaultLabels } from "./lib/labels";
+import type { ClassList, Labels } from "./types";
 
 interface Props {
   url: string;
@@ -16,6 +17,12 @@ interface Props {
   media?: boolean;
   /** Render a hashtag list for each post. Defaults to `false`. */
   tags?: boolean;
+  /** Override the built-in (English) texts. */
+  labels?: Labels;
+  /** BCP 47 locale used to format dates, e.g. `tr-TR`. */
+  locale?: string;
+  /** IANA time zone used to format dates, e.g. `Europe/Istanbul`. */
+  timeZone?: string;
 }
 
 const {
@@ -26,8 +33,12 @@ const {
   seperator,
   media = true,
   tags = false,
+  labels,
+  locale,
+  timeZone,
 }: Props = Astro.props;
 const showSeparator = separator ?? seperator ?? false;
+const l = { ...defaultLabels, ...labels };
 
 const { items, link } = await parseFeed(url);
 const maxItems =
@@ -38,26 +49,31 @@ const visibleItems =
   items && maxItems !== undefined ? items.slice(0, maxItems) : items;
 ---
 
-<section>
+<section class={classList.feed}>
   {!visibleItems ? (
-    <ErrorLoadingFeed classList={classList} />
+    <ErrorLoadingFeed label={l.errorLoadingFeed} classList={classList} />
   ) : visibleItems.length === 0 ? (
-    <NoItemsInFeed classList={classList} />
+    <NoItemsInFeed label={l.noItemsInFeed} classList={classList} />
   ) : (
-    visibleItems.map((item) => (
-      <div>
-        <FeedItem
-          link={item.link}
-          pubDate={item.pubDate}
-          content={item.content}
-          media={media ? item.media : []}
-          tags={tags ? item.tags : []}
-          instanceUrl={link}
-          classList={classList}
-        />
-        {showSeparator && <hr class={classList.separator} />}
-      </div>
-    ))
+    <ul class={classList.feed__list}>
+      {visibleItems.map((item) => (
+        <li class={classList.feed__item}>
+          <FeedItem
+            link={item.link}
+            pubDate={item.pubDate}
+            content={item.content}
+            labels={l}
+            media={media ? item.media : []}
+            tags={tags ? item.tags : []}
+            instanceUrl={link}
+            locale={locale}
+            timeZone={timeZone}
+            classList={classList}
+          />
+          {showSeparator && <hr class={classList.separator} />}
+        </li>
+      ))}
+    </ul>
   )}
   {link && (
     <a
@@ -66,7 +82,7 @@ const visibleItems =
       target="_blank"
       rel="noopener noreferrer"
     >
-      See more
+      {l.seeMore}
     </a>
   )}
 </section>

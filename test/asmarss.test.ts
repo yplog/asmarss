@@ -122,4 +122,62 @@ describe("Asmarss", () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
+
+  it("overrides labels and keeps the rest in English", async () => {
+    mockFetch(feedXml);
+    const html = await render({
+      labels: {
+        seeMore: "Devamı",
+        viewOnMastodon: "Mastodon'da gör",
+        sensitiveContent: "Hassas içerik",
+      },
+    });
+    expect(html).toContain("Devamı");
+    expect(html).toContain("Mastodon&#39;da gör");
+    expect(html).toContain("Hassas içerik");
+    expect(html).not.toContain("See more");
+
+    mockFetch(emptyXml);
+    expect(await render({ labels: { seeMore: "Devamı" } })).toContain(
+      "No items in feed",
+    );
+    expect(await render({ labels: { noItemsInFeed: "Boş" } })).toContain("Boş");
+    mockFetch("nope", 500);
+    expect(await render({ labels: { errorLoadingFeed: "Hata" } })).toContain(
+      "Hata",
+    );
+  });
+
+  it("keeps the default date format", async () => {
+    mockFetch(feedXml);
+    expect(await render()).toMatch(/Oct 0\d 2025 at /);
+  });
+
+  it("formats dates with locale and timeZone", async () => {
+    mockFetch(feedXml);
+    const html = await render({ locale: "tr-TR", timeZone: "Europe/Istanbul" });
+    expect(html).toContain("Eki");
+    expect(html).toContain("11:00"); // 08:00 UTC
+    expect(html).not.toContain(" at ");
+  });
+
+  it("falls back to the default format for an invalid timeZone", async () => {
+    mockFetch(feedXml);
+    expect(await render({ timeZone: "Not/AZone" })).toMatch(/ 2025 at /);
+  });
+
+  it("renders semantic markup and the new classList keys", async () => {
+    mockFetch(feedXml);
+    const html = await render({
+      separator: true,
+      classList: { feed: "f", feed__list: "fl", feed__item: "fi" },
+    });
+    for (const tag of ["<article", "<ul", "<li", "<header", "<footer"]) {
+      expect(html).toContain(tag);
+    }
+    expect(html).toMatch(/<section[^>]*class="f"/);
+    expect(html).toMatch(/<ul[^>]*class="fl"/);
+    expect(html).toMatch(/<li[^>]*class="fi"/);
+    expect(html).toMatch(/<\/article><hr[^>]*><\/li>/);
+  });
 });
