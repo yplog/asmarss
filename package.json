@@ -1,6 +1,6 @@
 {
   "name": "asmarss",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed.",
   "author": {
     "name": "Yalın Pala",
@@ -19,7 +19,8 @@
   ],
   "main": "src/index.astro",
   "exports": {
-    ".": "./src/index.astro"
+    ".": "./src/index.astro",
+    "./types": "./src/types.ts"
   },
   "files": [
     "src"
@@ -28,18 +29,25 @@
   "scripts": {
     "test": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "check": "astro check"
   },
   "peerDependencies": {
     "astro": ">=4"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.6.4",
     "astro": "^7.1.0",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.1.0",
+    "typescript": "^6.0.3",
     "vitest": "^5.0.3"
   },
   "dependencies": {
     "fast-xml-parser": "^5.11.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

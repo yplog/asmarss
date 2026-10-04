@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>Test User</title>
     <link>https://example.social/@test</link>
@@ -14,6 +14,28 @@
       <link>https://example.social/@test/1</link>
       <pubDate>Thu, 02 Oct 2025 09:30:00 +0000</pubDate>
       <description>&lt;p&gt;First toot&lt;/p&gt;</description>
+    </item>
+    <item>
+      <guid>https://example.social/@test/3</guid>
+      <link>https://example.social/@test/3</link>
+      <pubDate>Sat, 04 Oct 2025 08:00:00 +0000</pubDate>
+      <description>&lt;p&gt;Tagged toot&lt;/p&gt;</description>
+      <category>astro</category>
+      <category>rss</category>
+      <media:content url="https://example.social/media/cat.jpg" type="image/jpeg" medium="image">
+        <media:rating scheme="urn:simple">nonadult</media:rating>
+        <media:description type="plain">A cat on a keyboard</media:description>
+      </media:content>
+    </item>
+    <item>
+      <guid>https://example.social/@test/4</guid>
+      <link>https://example.social/@test/4</link>
+      <pubDate>Sat, 04 Oct 2025 09:00:00 +0000</pubDate>
+      <description></description>
+      <media:content url="https://example.social/media/secret.png" type="image/png" medium="image">
+        <media:rating scheme="urn:simple">adult</media:rating>
+        <media:description type="plain">Hidden picture</media:description>
+      </media:content>
     </item>
   </channel>
 </rss>

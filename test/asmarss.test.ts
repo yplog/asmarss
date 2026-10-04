@@ -76,4 +76,50 @@ describe("Asmarss", () => {
     const html = await render({ classList: { toot: "my-toot" } });
     expect(html).toContain("my-toot");
   });
+
+  it("renders media with alt text", async () => {
+    mockFetch(feedXml);
+    const html = await render();
+    expect(html).toContain("<img");
+    expect(html).toContain('alt="A cat on a keyboard"');
+    expect(html).toContain("https://example.social/media/cat.jpg");
+  });
+
+  it("skips media with `media={false}`", async () => {
+    mockFetch(feedXml);
+    expect(await render({ media: false })).not.toContain("<img");
+  });
+
+  it("wraps sensitive media in <details>", async () => {
+    mockFetch(feedXml);
+    const html = await render();
+    expect(html).toMatch(
+      /<details[^>]*>\s*<summary[^>]*>Sensitive content<\/summary>/,
+    );
+    expect(html).toContain('alt="Hidden picture"');
+  });
+
+  it("renders hashtags only with `tags`", async () => {
+    mockFetch(feedXml);
+    expect(await render()).not.toContain("#astro");
+    const html = await render({ tags: true });
+    expect(html).toContain("#astro");
+    expect(html).toContain('href="https://example.social/tags/rss"');
+  });
+
+  it("renders no posts for a negative limit", async () => {
+    mockFetch(feedXml);
+    const html = await render({ limit: -1 });
+    expect(html).not.toContain("Second toot");
+    expect(html).not.toContain("First toot");
+  });
+
+  it("passes an abort signal to fetch", async () => {
+    mockFetch(feedXml);
+    await render();
+    expect(fetch).toHaveBeenCalledWith(
+      url,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
 });

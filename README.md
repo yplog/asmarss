@@ -20,6 +20,8 @@ npm i asmarss
 | `classList` | `ClassList` | `{}`    | CSS classes to add to the rendered elements                    |
 | `limit`     | `number`    | all     | Maximum number of posts to render                              |
 | `separator` | `boolean`   | `false` | Render an `<hr>` after each post                               |
+| `media`     | `boolean`   | `true`  | Render attached images (with alt text), videos and audio       |
+| `tags`      | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages      |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -64,14 +66,26 @@ type ClassList = {
   toot__header?: string; // the class of the toot header
   toot__header__date?: string; // the class of the toot date
   toot__content?: string; // the class of the toot content
+  toot__media?: string; // the class of the media wrapper
+  toot__media__item?: string; // the class of each img/video/audio
+  toot__tags?: string; // the class of the hashtag list
+  toot__tag?: string; // the class of each hashtag item
   toot__footer?: string; // the class of the toot footer
   toot__footer__link?: string; // the class of the toot footer link
 };
 ```
 
+The type can be imported in TypeScript:
+
+```ts
+import type { ClassList } from "asmarss/types";
+```
+
+Posts marked as sensitive on Mastodon have their media wrapped in a collapsed `<details>` element.
+
 ## Requirements
 
-`astro` >= 4 is a peer dependency. The feed is fetched on the server at build/render time using the built-in `fetch`.
+`astro` >= 4 is a peer dependency and Node.js >= 18 is required. The feed is fetched on the server at build/render time using the built-in `fetch` (10 second timeout).
 
 ## Security
 
@@ -93,4 +107,4 @@ This project is licensed under the MIT License. Please refer to the license file
 
 ## Dependencies
 
-- [rss-parser](https://github.com/rbren/rss-parser#readme) - A small library for turning RSS XML feeds into JavaScript objects.
+- [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) - A fast XML parser, used to read the RSS feed.
