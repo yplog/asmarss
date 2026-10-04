@@ -12,14 +12,30 @@ interface Props {
   separator?: boolean;
   /** @deprecated Misspelled, use `separator` instead. */
   seperator?: boolean;
+  /** Render attached images, videos and audio. Defaults to `true`. */
+  media?: boolean;
+  /** Render a hashtag list for each post. Defaults to `false`. */
+  tags?: boolean;
 }
 
-const { url, classList = {}, limit, separator, seperator }: Props = Astro.props;
+const {
+  url,
+  classList = {},
+  limit,
+  separator,
+  seperator,
+  media = true,
+  tags = false,
+}: Props = Astro.props;
 const showSeparator = separator ?? seperator ?? false;
 
 const { items, link } = await parseFeed(url);
+const maxItems =
+  limit !== undefined && !Number.isNaN(limit)
+    ? Math.max(0, Math.floor(limit))
+    : undefined;
 const visibleItems =
-  items && limit !== undefined ? items.slice(0, limit) : items;
+  items && maxItems !== undefined ? items.slice(0, maxItems) : items;
 ---
 
 <section>
@@ -34,6 +50,9 @@ const visibleItems =
           link={item.link}
           pubDate={item.pubDate}
           content={item.content}
+          media={media ? item.media : []}
+          tags={tags ? item.tags : []}
+          instanceUrl={link}
           classList={classList}
         />
         {showSeparator && <hr class={classList.separator} />}

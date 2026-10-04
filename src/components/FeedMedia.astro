@@ -1,0 +1,56 @@
+---
+import type { ClassList, FeedMedia } from "../types";
+
+interface Props {
+  media: FeedMedia[];
+  classList?: ClassList;
+}
+
+const { media, classList = {} } = Astro.props;
+---
+
+<div class={classList.toot__media}>
+  {media.map((m) => {
+    const item =
+      m.medium === "image" ? (
+        <img
+          class={classList.toot__media__item}
+          src={m.url}
+          alt={m.description}
+          loading="lazy"
+        />
+      ) : m.medium === "video" ? (
+        <video
+          class={classList.toot__media__item}
+          src={m.url}
+          controls
+          preload="none"
+        />
+      ) : m.medium === "audio" ? (
+        <audio
+          class={classList.toot__media__item}
+          src={m.url}
+          controls
+          preload="none"
+        />
+      ) : (
+        <a
+          class={classList.toot__media__item}
+          href={m.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {m.description || m.url}
+        </a>
+      );
+
+    return m.sensitive ? (
+      <details>
+        <summary>Sensitive content</summary>
+        {item}
+      </details>
+    ) : (
+      item
+    );
+  })}
+</div>

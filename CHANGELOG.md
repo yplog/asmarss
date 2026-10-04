@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+
+- Media support: images (with alt text), videos and audio from `media:content` are rendered by default; disable with `media={false}`. Sensitive media is wrapped in a collapsed `<details>`.
+- `tags` prop to render a hashtag list from `category` elements.
+- New `ClassList` keys: `toot__media`, `toot__media__item`, `toot__tags`, `toot__tag`.
+- `asmarss/types` export so `ClassList` can be imported.
+- 10 second timeout on the feed request.
+- `npm run check` (`astro check`) in CI; `engines.node >= 18`.
+
+### Fixed
+
+- A negative `limit` no longer drops posts from the end; it renders none.
+- README still listed `rss-parser` as a dependency.
+
 ## 0.2.0
 
 ### Added

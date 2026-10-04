@@ -1,14 +1,35 @@
 ---
-import type { ClassList } from "../types";
+import FeedMedia from "./FeedMedia.astro";
+import type { ClassList, FeedMedia as FeedMediaType } from "../types";
 
 interface Props {
   pubDate: string;
   content: string;
   link: string;
+  media?: FeedMediaType[];
+  tags?: string[];
+  instanceUrl?: string | null;
   classList?: ClassList;
 }
 
-const { pubDate, content, link, classList } = Astro.props;
+const {
+  pubDate,
+  content,
+  link,
+  media = [],
+  tags = [],
+  instanceUrl,
+  classList,
+} = Astro.props;
+
+function tagHref(tag: string) {
+  try {
+    return new URL(`/tags/${encodeURIComponent(tag)}`, instanceUrl ?? link)
+      .href;
+  } catch {
+    return undefined;
+  }
+}
 
 const date = new Date(pubDate);
 const hasDate = !Number.isNaN(date.getTime());
@@ -34,6 +55,18 @@ const timeString = date.toLocaleTimeString([], {
   <div>
     <div class={classList?.toot__content} set:html={content} />
   </div>
+  {media.length > 0 && <FeedMedia media={media} classList={classList} />}
+  {tags.length > 0 && (
+    <ul class={classList?.toot__tags}>
+      {tags.map((tag) => (
+        <li class={classList?.toot__tag}>
+          <a href={tagHref(tag)} target="_blank" rel="noopener noreferrer">
+            #{tag}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
   <div class={classList?.toot__footer}>
     <a
       class={classList?.toot__footer__link}
