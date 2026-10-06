@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+### Added
+
+- Videos render with a `poster` taken from `media:thumbnail`; `FeedMedia` has an optional `thumbnail`.
+
+### Changed
+
+- `engines.node` is now `>=22` (the tested versions).
+
+### Fixed
+
+- Animated gifs (published as `medium="image"` with a `video/*` type) render as `<video>` instead of a broken `<img>`.
+- Non-http(s) URLs (e.g. `javascript:`) in post links, the channel link and media are dropped.
+- The "View on Mastodon" footer is omitted when a post has no valid link.
+- The headless example in the README passed literal strings instead of expressions.
+
 ## 0.4.0
 
 ### Added

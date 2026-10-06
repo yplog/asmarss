@@ -26,6 +26,12 @@ describe("asmarss/feed", () => {
       description: "A cat on a keyboard",
       sensitive: false,
     });
+    // gifv: MIME type wins over medium="image"; javascript: media is dropped
+    expect(tagged?.media).toHaveLength(2);
+    expect(tagged?.media[1]).toMatchObject({
+      medium: "video",
+      thumbnail: "https://example.social/media/anim.png",
+    });
     expect(items?.find((i) => i.link.endsWith("/4"))?.media[0].sensitive).toBe(
       true,
     );

@@ -70,14 +70,16 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       ))}
     </ul>
   )}
-  <footer class={classList?.toot__footer}>
-    <a
-      class={classList?.toot__footer__link}
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {labels.viewOnMastodon}
-    </a>
-  </footer>
+  {link && (
+    <footer class={classList?.toot__footer}>
+      <a
+        class={classList?.toot__footer__link}
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {labels.viewOnMastodon}
+      </a>
+    </footer>
+  )}
 </article>

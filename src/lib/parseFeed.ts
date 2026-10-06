@@ -17,17 +17,42 @@ function text(value: unknown): string {
   return value == null ? "" : String(value);
 }
 
+/** Only http(s) URLs are allowed; anything else (e.g. `javascript:`) becomes "". */
+function safeUrl(value: unknown): string {
+  const raw = text(value).trim();
+  try {
+    const { protocol } = new URL(raw);
+    return protocol === "http:" || protocol === "https:" ? raw : "";
+  } catch {
+    return "";
+  }
+}
+
 function parseMedia(raw: Raw): FeedMedia | null {
-  const url = text(raw["@_url"]);
+  const url = safeUrl(raw["@_url"]);
   if (!url) return null;
 
   const type = text(raw["@_type"]);
+  const mimeMedium = type.split("/")[0];
+  // The MIME type wins for video/audio: gifv is published as medium="image"
+  // with type="video/mp4".
+  const medium =
+    mimeMedium === "video" || mimeMedium === "audio"
+      ? mimeMedium
+      : text(raw["@_medium"]) || mimeMedium;
+  const thumbnail = safeUrl(
+    (([] as Raw[]).concat((raw["media:thumbnail"] as Raw) ?? [])[0] ?? {})[
+      "@_url"
+    ],
+  );
+
   return {
     url,
     type,
-    medium: text(raw["@_medium"]) || type.split("/")[0],
+    medium,
     description: text(raw["media:description"]),
     sensitive: text(raw["media:rating"]) === "adult",
+    ...(thumbnail && { thumbnail }),
   };
 }
 
@@ -40,7 +65,7 @@ function parseItem(item: Raw): FeedEntry {
     .filter(Boolean);
 
   return {
-    link: text(item.link),
+    link: safeUrl(item.link),
     pubDate: text(item.pubDate),
     content: text(item.description),
     media,
@@ -61,7 +86,7 @@ export async function parseFeed(
 
     const items = ((channel.item as Raw[] | undefined) ?? []).map(parseItem);
 
-    return { items, link: channel.link ? text(channel.link) : null };
+    return { items, link: safeUrl(channel.link) || null };
   } catch {
     return { items: null, link: null };
   }

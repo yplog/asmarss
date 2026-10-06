@@ -24,6 +24,7 @@ const { media, sensitiveLabel, classList = {} } = Astro.props;
         <video
           class={classList.toot__media__item}
           src={m.url}
+          poster={m.thumbnail}
           controls
           preload="none"
         />
