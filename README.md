@@ -116,7 +116,8 @@ import type { Labels } from "asmarss/types";
 
 `asmarss/feed` exposes the parser, so you can render the posts yourself:
 
-```html
+<!-- prettier-ignore -->
+```astro
 ---
 import { parseFeed, formatDate } from "asmarss/feed";
 
@@ -124,17 +125,17 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 ---
 
 {items === null ? (
-<p>Could not load the feed.</p>
+  <p>Could not load the feed.</p>
 ) : (
-<ul>
-  {items.map((item) => (
-  <li>
-    <time>{formatDate(new Date(item.pubDate), { locale: "en-GB" })}</time>
-    <div set:html="{item.content}" />
-    {item.media.map((m) => <img src="{m.url}" alt="{m.description}" />)}
-  </li>
-  ))}
-</ul>
+  <ul>
+    {items.map((item) => (
+      <li>
+        <time>{formatDate(new Date(item.pubDate), { locale: "en-GB" })}</time>
+        <div set:html={item.content} />
+        {item.media.map((m) => <img src={m.url} alt={m.description} />)}
+      </li>
+    ))}
+  </ul>
 )}
 ```
 
@@ -144,7 +145,7 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 
 ## Requirements
 
-`astro` >= 4 is a peer dependency and Node.js >= 18 is required. The feed is fetched on the server at build/render time using the built-in `fetch` (10 second timeout).
+`astro` >= 4 is a peer dependency and Node.js >= 22 is required. The feed is fetched on the server at build/render time using the built-in `fetch` (10 second timeout).
 
 ## Security
 

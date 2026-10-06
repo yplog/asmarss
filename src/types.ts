@@ -32,6 +32,7 @@ export type FeedMedia = {
   medium: string;
   description: string;
   sensitive: boolean;
+  thumbnail?: string;
 };
 
 export type FeedEntry = {

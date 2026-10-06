@@ -26,6 +26,13 @@
         <media:rating scheme="urn:simple">nonadult</media:rating>
         <media:description type="plain">A cat on a keyboard</media:description>
       </media:content>
+      <media:content url="https://example.social/media/anim.mp4" type="video/mp4" medium="image">
+        <media:thumbnail url="https://example.social/media/anim.png"/>
+        <media:description type="plain">An animation</media:description>
+      </media:content>
+      <media:content url="javascript:alert(1)" type="image/png" medium="image">
+        <media:description type="plain">Evil</media:description>
+      </media:content>
     </item>
     <item>
       <guid>https://example.social/@test/4</guid>

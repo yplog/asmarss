@@ -85,6 +85,14 @@ describe("Asmarss", () => {
     expect(html).toContain("https://example.social/media/cat.jpg");
   });
 
+  it("renders video with a poster and drops unsafe urls", async () => {
+    mockFetch(feedXml);
+    const html = await render();
+    expect(html).toContain("<video");
+    expect(html).toContain('poster="https://example.social/media/anim.png"');
+    expect(html).not.toContain("javascript:");
+  });
+
   it("skips media with `media={false}`", async () => {
     mockFetch(feedXml);
     expect(await render({ media: false })).not.toContain("<img");
