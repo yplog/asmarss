@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yplog/asmarss"
+    "url": "git+https://github.com/yplog/asmarss.git"
   },
   "keywords": [
     "astro",
