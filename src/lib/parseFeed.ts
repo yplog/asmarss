@@ -1,5 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
-import type { FeedEntry, FeedMedia, ParsedFeed } from "../types";
+import type { FeedEntry, FeedMedia, MergedFeed, ParsedFeed } from "../types";
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -134,12 +134,26 @@ async function request(
   return res;
 }
 
+const emptyFeed = (): ParsedFeed => ({
+  items: null,
+  link: null,
+  title: null,
+  description: null,
+  image: null,
+});
+
 function parseXml(xml: string): ParsedFeed {
   const channel = parser.parse(xml)?.rss?.channel;
   if (!channel) throw new Error("Invalid RSS feed");
 
   const items = ((channel.item as Raw[] | undefined) ?? []).map(parseItem);
-  return { items, link: safeUrl(channel.link) || null };
+  return {
+    items,
+    link: safeUrl(channel.link) || null,
+    title: text(channel.title) || null,
+    description: text(channel.description) || null,
+    image: safeUrl(channel.image?.url) || null,
+  };
 }
 
 export async function parseFeed(
@@ -192,6 +206,33 @@ export async function parseFeed(
   } catch (error) {
     reportError(error, url, onError);
     // Serve the stale copy rather than an error when we have one.
-    return cacheTtlMs > 0 && cached ? cached.feed : { items: null, link: null };
+    return cacheTtlMs > 0 && cached ? cached.feed : emptyFeed();
   }
+}
+
+const time = (date: string) => Date.parse(date) || -Infinity;
+
+/**
+ * Fetches several feeds and merges their posts, newest first. Each post gets a
+ * `source`. `items` is `null` only when every feed failed.
+ */
+export async function parseFeeds(
+  urls: string[],
+  options: ParseFeedOptions = {},
+): Promise<MergedFeed> {
+  const feeds = await Promise.all(
+    urls.map(async (url) => ({ url, ...(await parseFeed(url, options)) })),
+  );
+
+  const loaded = feeds.filter((feed) => feed.items !== null);
+  if (loaded.length === 0) return { items: null, feeds };
+
+  const items = loaded
+    .flatMap(({ url, link, title, image, items }) => {
+      const source = { url, link, title, image };
+      return (items ?? []).map((item) => ({ ...item, source }));
+    })
+    .sort((a, b) => time(b.pubDate) - time(a.pubDate));
+
+  return { items, feeds };
 }

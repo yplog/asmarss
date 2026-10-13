@@ -2,7 +2,12 @@
 import FeedMedia from "./FeedMedia.astro";
 import { formatDate } from "../lib/formatDate";
 import { sanitizeContent } from "../lib/sanitize";
-import type { ClassList, FeedMedia as FeedMediaType, Labels } from "../types";
+import type {
+  ClassList,
+  FeedMedia as FeedMediaType,
+  FeedSource,
+  Labels,
+} from "../types";
 
 interface Props {
   pubDate: string;
@@ -15,6 +20,8 @@ interface Props {
   locale?: string;
   timeZone?: string;
   sanitize?: boolean;
+  /** The account the post came from; shown above the post when merging feeds. */
+  author?: FeedSource;
   classList?: ClassList;
 }
 
@@ -29,6 +36,7 @@ const {
   locale,
   timeZone,
   sanitize = true,
+  author,
   classList,
 } = Astro.props;
 
@@ -47,6 +55,31 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
 ---
 
 <article class={classList?.toot}>
+  {author && (author.title || author.image) && (
+    <div class={classList?.toot__author}>
+      {author.image && (
+        <img
+          class={classList?.toot__author__avatar}
+          src={author.image}
+          alt=""
+          loading="lazy"
+        />
+      )}
+      {author.title &&
+        (author.link ? (
+          <a
+            class={classList?.toot__author__name}
+            href={author.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {author.title}
+          </a>
+        ) : (
+          <span class={classList?.toot__author__name}>{author.title}</span>
+        ))}
+    </div>
+  )}
   {hasDate && (
     <header class={classList?.toot__header}>
       <div class={classList?.toot__header__date}>

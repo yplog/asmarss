@@ -1,0 +1,41 @@
+---
+import type { ClassList, ParsedFeed } from "../types";
+
+interface Props {
+  feeds: ParsedFeed[];
+  classList?: ClassList;
+}
+
+const { feeds, classList = {} } = Astro.props;
+---
+
+{feeds.map((feed) => (
+  <header class={classList.feed__header}>
+    {feed.image && (
+      <img
+        class={classList.feed__avatar}
+        src={feed.image}
+        alt=""
+        loading="lazy"
+      />
+    )}
+    <div>
+      {feed.title &&
+        (feed.link ? (
+          <a
+            class={classList.feed__title}
+            href={feed.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {feed.title}
+          </a>
+        ) : (
+          <span class={classList.feed__title}>{feed.title}</span>
+        ))}
+      {feed.description && (
+        <p class={classList.feed__description}>{feed.description}</p>
+      )}
+    </div>
+  </header>
+))}

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0
+
+### Added
+
+- `onlyWithMedia`, `tag` and `replies` props. Account sources request the matching server feed (`/tagged/<tag>.rss`, `?only_media=1`, `/with_replies.rss`); the filters are also applied in the component, so they work with `url` too.
+- `header` prop that renders each feed's avatar, title and description, with new `feed__header`, `feed__avatar`, `feed__title` and `feed__description` classes.
+- `url` and `account` accept arrays to merge several feeds, newest first. Posts get an author line (`toot__author`, `toot__author__avatar`, `toot__author__name`), and failing feeds are skipped and reported through `onError`.
+- `parseFeeds`, `filterItems` and the `FeedSource`, `MergedFeed`, `FeedUrlOptions` and `FilterOptions` types in `asmarss/feed`; `mastodonFeedUrl` takes `{ tag, onlyMedia, replies }`.
+
+### Changed
+
+- `ParsedFeed` has the new fields `title`, `description` and `image`, and `FeedEntry` an optional `source`.
+
 ## 0.7.0
 
 ### Added

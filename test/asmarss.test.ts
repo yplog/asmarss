@@ -275,4 +275,104 @@ describe("Asmarss", () => {
     expect(await render({ url: undefined })).toContain("Error loading feed");
     expect(console.warn).toHaveBeenCalled();
   });
+
+  it("renders a header with the avatar and title", async () => {
+    mockFetch(feedXml);
+    expect(await render()).not.toContain("Public posts from");
+    const html = await render({
+      header: true,
+      classList: { feed__header: "fh", feed__avatar: "fa", feed__title: "ft" },
+    });
+    expect(html).toMatch(/<header[^>]*class="fh"/);
+    expect(html).toMatch(
+      /<img[^>]*class="fa"[^>]*src="https:\/\/example.social\/avatars\/test.png"/,
+    );
+    expect(html).toContain("Test User");
+    expect(html).toContain("Public posts from @test@example.social");
+  });
+
+  it("filters with `onlyWithMedia` and `tag`", async () => {
+    mockFetch(feedXml);
+    const media = await render({ onlyWithMedia: true });
+    expect(media).toContain("Tagged toot");
+    expect(media).not.toContain("Second toot");
+
+    const tagged = await render({ tag: "#RSS" });
+    expect(tagged).toContain("Tagged toot");
+    expect(tagged).not.toContain("Second toot");
+
+    expect(await render({ tag: "missing" })).toContain("No items in feed");
+  });
+
+  it("asks the server for tag, replies and media feeds of an account", async () => {
+    mockFetch(feedXml);
+    const base = "https://example.social/@test";
+    const account = "@test@example.social";
+    const calls = async (props: Record<string, unknown>) => {
+      vi.mocked(fetch).mockClear();
+      await render({ url: undefined, account, ...props });
+      return vi.mocked(fetch).mock.calls.map((c) => c[0]);
+    };
+    expect(await calls({ tag: "rss" })).toEqual([`${base}/tagged/rss.rss`]);
+    expect(await calls({ replies: true })).toEqual([
+      `${base}/with_replies.rss`,
+    ]);
+    expect(await calls({ onlyWithMedia: true })).toEqual([
+      `${base}.rss?only_media=1`,
+    ]);
+  });
+
+  it("merges several accounts with authors and no see more link", async () => {
+    const other = `<rss version="2.0"><channel><title>Other</title><link>https://other.social/@o</link>
+      <image><url>https://other.social/o.png</url></image>
+      <item><link>https://other.social/@o/1</link><pubDate>Mon, 06 Oct 2025 12:00:00 +0000</pubDate><description>&lt;p&gt;Other toot&lt;/p&gt;</description></item>
+    </channel></rss>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (u: string) =>
+        u.includes("other.social")
+          ? new Response(other)
+          : new Response(feedXml),
+      ),
+    );
+    const html = await render({
+      url: undefined,
+      account: ["@test@example.social", "@o@other.social"],
+      header: true,
+      classList: { toot__author: "au", toot__author__name: "an" },
+    });
+    expect(html.indexOf("Other toot")).toBeLessThan(
+      html.indexOf("Second toot"),
+    );
+    expect(html).toMatch(/class="au"/);
+    expect(html).toMatch(/<a[^>]*class="an"[^>]*>\s*Other\s*<\/a>/);
+    expect(html).not.toContain("See more");
+    expect(html.match(/<header/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("still renders the feeds that load when one of several fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (u: string) =>
+        u.includes("other.social")
+          ? new Response("", { status: 404 })
+          : new Response(feedXml),
+      ),
+    );
+    const onError = vi.fn();
+    const html = await render({
+      url: undefined,
+      account: ["@test@example.social", "@o@other.social"],
+      onError,
+    });
+    expect(html).toContain("Second toot");
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't add authors for a single feed", async () => {
+    mockFetch(feedXml);
+    expect(await render({ classList: { toot__author: "au" } })).not.toContain(
+      'class="au"',
+    );
+  });
 });
