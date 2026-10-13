@@ -100,6 +100,16 @@ export function clearFeedCache(): void {
   cache.clear();
 }
 
+/** Hands the failure to `onError`, or logs it when there is none. */
+export function reportError(
+  error: unknown,
+  url: string,
+  onError?: ParseFeedOptions["onError"],
+): void {
+  if (onError) onError(error, url);
+  else console.warn(`[asmarss] Failed to load ${url}:`, error);
+}
+
 class HttpError extends Error {
   constructor(readonly status: number) {
     super(`HTTP ${status}`);
@@ -180,8 +190,7 @@ export async function parseFeed(
     }
     return feed;
   } catch (error) {
-    if (onError) onError(error, url);
-    else console.warn(`[asmarss] Failed to load ${url}:`, error);
+    reportError(error, url, onError);
     // Serve the stale copy rather than an error when we have one.
     return cacheTtlMs > 0 && cached ? cached.feed : { items: null, link: null };
   }

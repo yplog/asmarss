@@ -228,4 +228,51 @@ describe("Asmarss", () => {
     expect(html).toMatch(/<li[^>]*class="fi"/);
     expect(html).toMatch(/<\/article>\s*<hr[^>]*>\s*<\/li>/);
   });
+
+  it("builds the url from `account` or `instance` + `username`", async () => {
+    mockFetch(feedXml);
+    const expected = "https://example.social/@test.rss";
+    const opts = expect.objectContaining({ signal: expect.any(AbortSignal) });
+
+    expect(
+      await render({ url: undefined, account: "@test@example.social" }),
+    ).toContain("First toot");
+    expect(fetch).toHaveBeenLastCalledWith(expected, opts);
+
+    await render({
+      url: undefined,
+      instance: "example.social",
+      username: "test",
+    });
+    expect(fetch).toHaveBeenLastCalledWith(expected, opts);
+  });
+
+  it("prefers `url`, then `account`, then `instance` + `username`", async () => {
+    mockFetch(feedXml);
+    await render({ account: "@other@other.social" });
+    expect(fetch).toHaveBeenLastCalledWith(url, expect.anything());
+
+    await render({
+      url: undefined,
+      account: "@a@a.social",
+      instance: "b.social",
+      username: "b",
+    });
+    expect(fetch).toHaveBeenLastCalledWith(
+      "https://a.social/@a.rss",
+      expect.anything(),
+    );
+  });
+
+  it("renders the error without fetching for an invalid source", async () => {
+    mockFetch(feedXml);
+    const onError = vi.fn();
+    const html = await render({ url: undefined, account: "nope", onError });
+    expect(html).toContain("Error loading feed");
+    expect(fetch).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.any(Error), "nope");
+
+    expect(await render({ url: undefined })).toContain("Error loading feed");
+    expect(console.warn).toHaveBeenCalled();
+  });
 });

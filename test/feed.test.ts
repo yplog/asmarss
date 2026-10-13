@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearFeedCache,
   formatDate,
+  mastodonFeedUrl,
   parseFeed,
   sanitizeContent,
 } from "../src/feed";
@@ -293,5 +294,35 @@ describe("formatDate", () => {
 
   it("falls back for an invalid timeZone", () => {
     expect(formatDate(date, { timeZone: "Not/AZone" })).toContain(" at ");
+  });
+});
+
+describe("mastodonFeedUrl", () => {
+  const expected = "https://mastodon.social/@yplog.rss";
+
+  it("builds the url from an instance and a username", () => {
+    expect(mastodonFeedUrl("mastodon.social", "yplog")).toBe(expected);
+    expect(mastodonFeedUrl("https://mastodon.social/", "@yplog")).toBe(
+      expected,
+    );
+    expect(mastodonFeedUrl(" mastodon.social ", " yplog ")).toBe(expected);
+    expect(mastodonFeedUrl("https://mastodon.social/@x?y=1", "yplog")).toBe(
+      expected,
+    );
+  });
+
+  it("builds the url from a full account name", () => {
+    expect(mastodonFeedUrl("@yplog@mastodon.social")).toBe(expected);
+    expect(mastodonFeedUrl("yplog@mastodon.social")).toBe(expected);
+  });
+
+  it("returns null for invalid input", () => {
+    expect(mastodonFeedUrl("ftp://x.social", "a")).toBeNull();
+    expect(mastodonFeedUrl("", "a")).toBeNull();
+    expect(mastodonFeedUrl("mastodon.social", "")).toBeNull();
+    expect(mastodonFeedUrl("mastodon.social", "a b")).toBeNull();
+    expect(mastodonFeedUrl("yplog")).toBeNull();
+    expect(mastodonFeedUrl("@@x")).toBeNull();
+    expect(mastodonFeedUrl("@yplog@")).toBeNull();
   });
 });
