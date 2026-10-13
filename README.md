@@ -234,6 +234,7 @@ If you would like to contribute to this project, please follow the steps below:
 - Create a new branch: git checkout -b my-new-feature.
 - Make changes and commit them: git commit -am 'Add some feature'.
 - Push to the branch: git push origin my-new-feature.
+- Run `npm run format`, `npm run lint` and `npm test` before opening the pull request.
 - Create a new pull request (PR).
 
 ## License
