@@ -29,6 +29,7 @@ jobs:
       - if: matrix.astro != 'locked'
         run: npm install --no-save astro@${{ matrix.astro }}
       - run: npm run format:check
+      - run: npm run lint
       - run: npm run check
       - if: matrix.node == 24 && matrix.astro == 'locked'
         run: npm run test:coverage
