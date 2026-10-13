@@ -2,11 +2,14 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearFeedCache,
+  filterItems,
   formatDate,
   mastodonFeedUrl,
   parseFeed,
+  parseFeeds,
   sanitizeContent,
 } from "../src/feed";
+import type { FeedEntry } from "../src/feed";
 
 const feedXml = readFileSync(
   new URL("./fixtures/feed.xml", import.meta.url),
@@ -50,13 +53,42 @@ describe("asmarss/feed", () => {
     );
   });
 
+  it("parses the channel title, description and image", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(feedXml)),
+    );
+    expect(await parseFeed(url)).toMatchObject({
+      title: "Test User",
+      description: "Public posts from @test@example.social",
+      image: "https://example.social/avatars/test.png",
+    });
+
+    const xml = `<rss version="2.0"><channel><title>x</title><image><url>javascript:alert(1)</url></image></channel></rss>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(xml)),
+    );
+    expect(await parseFeed(url)).toMatchObject({
+      title: "x",
+      description: null,
+      image: null,
+    });
+  });
+
   it("returns null items on failure", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("nope", { status: 500 })),
     );
     quiet();
-    expect(await parseFeed(url)).toEqual({ items: null, link: null });
+    expect(await parseFeed(url)).toEqual({
+      items: null,
+      link: null,
+      title: null,
+      description: null,
+      image: null,
+    });
   });
 
   it("returns null items for malformed or non-RSS XML", async () => {
@@ -324,5 +356,122 @@ describe("mastodonFeedUrl", () => {
     expect(mastodonFeedUrl("yplog")).toBeNull();
     expect(mastodonFeedUrl("@@x")).toBeNull();
     expect(mastodonFeedUrl("@yplog@")).toBeNull();
+  });
+});
+
+describe("mastodonFeedUrl options", () => {
+  const base = "https://mastodon.social/@yplog";
+
+  it("builds tag, replies and media addresses", () => {
+    const acc = "@yplog@mastodon.social";
+    expect(mastodonFeedUrl(acc, { onlyMedia: true })).toBe(
+      `${base}.rss?only_media=1`,
+    );
+    expect(mastodonFeedUrl(acc, { replies: true })).toBe(
+      `${base}/with_replies.rss`,
+    );
+    expect(mastodonFeedUrl(acc, { tag: "#Astro" })).toBe(
+      `${base}/tagged/Astro.rss`,
+    );
+    expect(mastodonFeedUrl("mastodon.social", "yplog", { tag: "a b" })).toBe(
+      `${base}/tagged/a%20b.rss`,
+    );
+  });
+
+  it("lets tag win over replies and combines with media", () => {
+    expect(
+      mastodonFeedUrl("@yplog@mastodon.social", {
+        tag: "astro",
+        replies: true,
+        onlyMedia: true,
+      }),
+    ).toBe(`${base}/tagged/astro.rss?only_media=1`);
+  });
+});
+
+describe("filterItems", () => {
+  const item = (tags: string[], media = false) =>
+    ({
+      link: tags.join(),
+      pubDate: "",
+      content: "",
+      tags,
+      media: media
+        ? [
+            {
+              url: "u",
+              type: "",
+              medium: "image",
+              description: "",
+              sensitive: false,
+            },
+          ]
+        : [],
+    }) as FeedEntry;
+  const items = [item(["Astro"], true), item(["astro"]), item(["rss"], true)];
+
+  it("filters by media and tag, ignoring case and #", () => {
+    expect(filterItems(items)).toHaveLength(3);
+    expect(filterItems(items, { onlyWithMedia: true })).toHaveLength(2);
+    expect(filterItems(items, { tag: "#ASTRO" })).toHaveLength(2);
+    expect(filterItems(items, { tag: "astro", onlyWithMedia: true })).toEqual([
+      items[0],
+    ]);
+  });
+});
+
+describe("parseFeeds", () => {
+  const otherXml = `<rss version="2.0"><channel><title>Other</title><link>https://other.social/@o</link>
+    <image><url>https://other.social/o.png</url></image>
+    <item><link>https://other.social/@o/1</link><pubDate>Fri, 03 Oct 2025 12:00:00 +0000</pubDate><description>&lt;p&gt;Other toot&lt;/p&gt;</description></item>
+    <item><link>https://other.social/@o/2</link><pubDate>garbage</pubDate><description>x</description></item>
+  </channel></rss>`;
+  const otherUrl = "https://other.social/@o.rss";
+
+  function stub(map: Record<string, Response | Error>) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (u: string) => {
+        const r = map[u];
+        if (r instanceof Error) throw r;
+        return r;
+      }),
+    );
+  }
+
+  it("merges posts newest first and tags each with its source", async () => {
+    stub({ [url]: new Response(feedXml), [otherUrl]: new Response(otherXml) });
+    const { items, feeds } = await parseFeeds([url, otherUrl]);
+    expect(feeds.map((f) => f.url)).toEqual([url, otherUrl]);
+    const links = items?.map((i) => i.link) ?? [];
+    expect(links.indexOf("https://other.social/@o/1")).toBeLessThan(
+      links.indexOf("https://example.social/@test/1"),
+    );
+    // invalid dates go last
+    expect(links.at(-1)).toBe("https://other.social/@o/2");
+    expect(items?.find((i) => i.link.endsWith("@o/1"))?.source).toEqual({
+      url: otherUrl,
+      link: "https://other.social/@o",
+      title: "Other",
+      image: "https://other.social/o.png",
+    });
+  });
+
+  it("keeps the other feed when one fails", async () => {
+    const onError = vi.fn();
+    stub({ [url]: new Error("down"), [otherUrl]: new Response(otherXml) });
+    const { items, feeds } = await parseFeeds([url, otherUrl], { onError });
+    expect(items).toHaveLength(2);
+    expect(feeds[0].items).toBeNull();
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns null items when every feed fails", async () => {
+    quiet();
+    stub({
+      [url]: new Error("a"),
+      [otherUrl]: new Response("", { status: 500 }),
+    });
+    expect((await parseFeeds([url, otherUrl])).items).toBeNull();
   });
 });

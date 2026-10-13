@@ -2,22 +2,24 @@
 import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
-import { parseFeed, reportError } from "./lib/parseFeed";
+import FeedHeader from "./components/FeedHeader.astro";
+import { parseFeed, parseFeeds, reportError } from "./lib/parseFeed";
+import { filterItems } from "./lib/filter";
 import { mastodonFeedUrl } from "./lib/feedUrl";
 import { defaultLabels } from "./lib/labels";
-import type { ClassList, Labels } from "./types";
+import type { ClassList, Labels, ParsedFeed } from "./types";
 
 type Source =
   | {
-      /** RSS URL of the Mastodon account, e.g. `https://mastodon.social/@user.rss`. */
-      url: string;
+      /** RSS URL of the Mastodon account, e.g. `https://mastodon.social/@user.rss`. Pass an array to merge several feeds. */
+      url: string | string[];
       account?: never;
       instance?: never;
       username?: never;
     }
   | {
-      /** Full account name, e.g. `@user@mastodon.social`. */
-      account: string;
+      /** Full account name, e.g. `@user@mastodon.social`. Pass an array to merge several accounts. */
+      account: string | string[];
       url?: never;
       instance?: never;
       username?: never;
@@ -47,6 +49,14 @@ interface Options {
   locale?: string;
   /** IANA time zone used to format dates, e.g. `Europe/Istanbul`. */
   timeZone?: string;
+  /** Render the feed title, description and avatar. Defaults to `false`. */
+  header?: boolean;
+  /** Only show posts with attachments. */
+  onlyWithMedia?: boolean;
+  /** Only show posts with this hashtag. */
+  tag?: string;
+  /** Include replies (account sources only; ignored when `tag` is set). */
+  replies?: boolean;
   /** Strip unsafe markup from post content. Defaults to `true`. */
   sanitize?: boolean;
   /** Cache the parsed feed in memory for this many seconds. Defaults to 0 (off). */
@@ -75,6 +85,10 @@ const {
   labels,
   locale,
   timeZone,
+  header = false,
+  onlyWithMedia = false,
+  tag,
+  replies = false,
   sanitize = true,
   cacheTtl,
   retries,
@@ -84,41 +98,76 @@ const {
 const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 
-// url > account > instance + username
-const url =
-  urlProp ??
-  (account !== undefined
-    ? mastodonFeedUrl(account)
-    : instance !== undefined && username !== undefined
-      ? mastodonFeedUrl(instance, username)
-      : null);
+const toList = (value: string | string[] | undefined) =>
+  value === undefined ? [] : Array.isArray(value) ? value : [value];
 
-let items: Awaited<ReturnType<typeof parseFeed>>["items"] = null;
-let link: string | null = null;
-if (url) {
-  ({ items, link } = await parseFeed(url, {
-    timeoutMs: timeout,
-    cacheTtlMs: cacheTtl !== undefined ? cacheTtl * 1000 : undefined,
-    retries,
-    onError,
-  }));
-} else {
-  const given = urlProp ?? account ?? `${instance ?? ""} ${username ?? ""}`;
-  reportError(
-    new Error("Invalid or missing feed source"),
-    given.trim(),
-    onError,
-  );
+// url > account > instance + username
+const feedUrlOptions = { tag, onlyMedia: onlyWithMedia, replies };
+const sources =
+  urlProp !== undefined
+    ? toList(urlProp).map((u) => [u, u || null] as const)
+    : account !== undefined
+      ? toList(account).map(
+          (a) => [a, mastodonFeedUrl(a, feedUrlOptions)] as const,
+        )
+      : instance !== undefined && username !== undefined
+        ? [
+            [
+              `${instance} ${username}`,
+              mastodonFeedUrl(instance, username, feedUrlOptions),
+            ] as const,
+          ]
+        : [];
+
+const urls: string[] = [];
+for (const [given, resolved] of sources) {
+  if (resolved) urls.push(resolved);
+  else {
+    reportError(
+      new Error("Invalid or missing feed source"),
+      given.trim(),
+      onError,
+    );
+  }
 }
+if (sources.length === 0) {
+  reportError(new Error("Invalid or missing feed source"), "", onError);
+}
+
+const feedOptions = {
+  timeoutMs: timeout,
+  cacheTtlMs: cacheTtl !== undefined ? cacheTtl * 1000 : undefined,
+  retries,
+  onError,
+};
+const merged = urls.length > 1;
+
+let items: ParsedFeed["items"] = null;
+let link: string | null = null;
+let feeds: ParsedFeed[] = [];
+if (merged) {
+  const result = await parseFeeds(urls, feedOptions);
+  items = result.items;
+  feeds = result.feeds.filter((feed) => feed.items !== null);
+} else if (urls.length === 1) {
+  const feed = await parseFeed(urls[0], feedOptions);
+  ({ items, link } = feed);
+  feeds = feed.items ? [feed] : [];
+}
+
+const filtered = items && filterItems(items, { onlyWithMedia, tag });
 const maxItems =
   limit !== undefined && !Number.isNaN(limit)
     ? Math.max(0, Math.floor(limit))
     : undefined;
 const visibleItems =
-  items && maxItems !== undefined ? items.slice(0, maxItems) : items;
+  filtered && maxItems !== undefined ? filtered.slice(0, maxItems) : filtered;
 ---
 
 <section class={classList.feed}>
+  {header && feeds.length > 0 && (
+    <FeedHeader feeds={feeds} classList={classList} />
+  )}
   {!visibleItems ? (
     <ErrorLoadingFeed label={l.errorLoadingFeed} classList={classList} />
   ) : visibleItems.length === 0 ? (
@@ -134,7 +183,8 @@ const visibleItems =
             labels={l}
             media={media ? item.media : []}
             tags={tags ? item.tags : []}
-            instanceUrl={link}
+            instanceUrl={item.source?.link ?? link}
+            author={merged ? item.source : undefined}
             locale={locale}
             timeZone={timeZone}
             sanitize={sanitize}

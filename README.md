@@ -14,25 +14,29 @@ npm i asmarss
 
 ## Usage
 
-| Prop        | Type        | Default | Description                                                        |
-| ----------- | ----------- | ------- | ------------------------------------------------------------------ |
-| `url`       | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`)     |
-| `account`   | `string`    | –       | Full account name, e.g. `@user@mastodon.social` (instead of `url`) |
-| `instance`  | `string`    | –       | Instance host, e.g. `mastodon.social`; use with `username`         |
-| `username`  | `string`    | –       | Account name on the instance, e.g. `user`; use with `instance`     |
-| `classList` | `ClassList` | `{}`    | CSS classes to add to the rendered elements                        |
-| `limit`     | `number`    | all     | Maximum number of posts to render                                  |
-| `separator` | `boolean`   | `false` | Render an `<hr>` after each post                                   |
-| `media`     | `boolean`   | `true`  | Render attached images (with alt text), videos and audio           |
-| `tags`      | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages          |
-| `labels`    | `Labels`    | English | Override the built-in texts (see below)                            |
-| `locale`    | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                              |
-| `timeZone`  | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`                   |
-| `sanitize`  | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)               |
-| `cacheTtl`  | `number`    | `0`     | Cache the parsed feed in memory for this many seconds              |
-| `retries`   | `number`    | `0`     | Retry network errors, 5xx and 429 this many times                  |
-| `timeout`   | `number`    | `10000` | Request timeout in milliseconds                                    |
-| `onError`   | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`        |
+| Prop            | Type        | Default | Description                                                        |
+| --------------- | ----------- | ------- | ------------------------------------------------------------------ |
+| `url`           | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`)     |
+| `account`       | `string`    | –       | Full account name, e.g. `@user@mastodon.social` (instead of `url`) |
+| `instance`      | `string`    | –       | Instance host, e.g. `mastodon.social`; use with `username`         |
+| `username`      | `string`    | –       | Account name on the instance, e.g. `user`; use with `instance`     |
+| `classList`     | `ClassList` | `{}`    | CSS classes to add to the rendered elements                        |
+| `limit`         | `number`    | all     | Maximum number of posts to render                                  |
+| `separator`     | `boolean`   | `false` | Render an `<hr>` after each post                                   |
+| `media`         | `boolean`   | `true`  | Render attached images (with alt text), videos and audio           |
+| `tags`          | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages          |
+| `labels`        | `Labels`    | English | Override the built-in texts (see below)                            |
+| `locale`        | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                              |
+| `timeZone`      | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`                   |
+| `header`        | `boolean`   | `false` | Render the feed's avatar, title and description                    |
+| `onlyWithMedia` | `boolean`   | `false` | Only show posts with attachments                                   |
+| `tag`           | `string`    | –       | Only show posts with this hashtag (`astro` or `#astro`)            |
+| `replies`       | `boolean`   | `false` | Include replies (account sources only; ignored with `tag`)         |
+| `sanitize`      | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)               |
+| `cacheTtl`      | `number`    | `0`     | Cache the parsed feed in memory for this many seconds              |
+| `retries`       | `number`    | `0`     | Retry network errors, 5xx and 429 this many times                  |
+| `timeout`       | `number`    | `10000` | Request timeout in milliseconds                                    |
+| `onError`       | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`        |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -85,7 +89,14 @@ type ClassList = {
   error_loading_feed?: string; // the class of the error message
   no_items_in_feed?: string; // the class of the no items message
   see_more?: string; // the class of the see more link
+  feed__header?: string; // the class of the feed header (header prop)
+  feed__avatar?: string; // the class of the feed avatar
+  feed__title?: string; // the class of the feed title
+  feed__description?: string; // the class of the feed description
   toot?: string; // the class of the toot
+  toot__author?: string; // the class of the author line (merged feeds)
+  toot__author__avatar?: string; // the class of the author avatar
+  toot__author__name?: string; // the class of the author name
   toot__header?: string; // the class of the toot header
   toot__header__date?: string; // the class of the toot date
   toot__content?: string; // the class of the toot content
@@ -129,6 +140,37 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
 import type { Labels } from "asmarss/types";
 ```
 
+## Filtering
+
+Mastodon's `@user.rss` feed already leaves out replies and boosts, so there is
+nothing to exclude. `onlyWithMedia` and `tag` filter the posts, and `replies` adds
+replies back:
+
+```html
+<Asmarss account="@username@mastodon.instance" tag="astro" onlyWithMedia />
+<Asmarss account="@username@mastodon.instance" replies />
+```
+
+With `account` or `instance` + `username` the matching server feed is requested
+(`/@user/tagged/astro.rss`, `?only_media=1`, `/with_replies.rss`), so a filter
+doesn't run out of the usual 20 posts. The filter is applied again in the
+component, which means it also works with `url`. `replies` needs an account source
+and is ignored when `tag` is set.
+
+## Header and multiple feeds
+
+`header` renders the avatar, title and description of each feed. Pass an array to
+merge several accounts, newest post first. Each post then gets an author line, and
+the "See more" link is left out. Feeds that fail are skipped and reported through
+`onError`:
+
+```html
+<Asmarss
+  account={["@a@mastodon.social", "@b@fosstodon.org"]}
+  header
+  limit={10} />
+```
+
 ## Caching and errors
 
 With `cacheTtl` the parsed feed is kept in memory per URL. Once it expires, the
@@ -169,7 +211,10 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 `items` is `null` when the request fails or the feed is invalid. Each entry has
 `link`, `pubDate`, `content` (HTML), `media` and `tags`. `parseFeed` accepts
 `{ timeoutMs, cacheTtlMs, retries, retryDelayMs, onError }` as a second argument.
-`mastodonFeedUrl("@user@instance")` (or `mastodonFeedUrl("instance", "user")`) builds the
+`parseFeeds([url1, url2], options)` merges feeds the same way as the component
+(`{ items, feeds }`, each item has a `source`), and `filterItems(items, { onlyWithMedia, tag })`
+applies the filters. `ParsedFeed` also has `title`, `description` and `image`.
+`mastodonFeedUrl("@user@instance", { tag, onlyMedia, replies })` (or `mastodonFeedUrl("instance", "user")`) builds the
 RSS address and returns `null` for invalid input. `clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
 sanitizer the component uses: apply it before `set:html` when rendering `item.content` yourself.
 
