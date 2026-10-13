@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import Asmarss from "../src/index.astro";
+import { clearFeedCache } from "../src/feed";
 
 const feedXml = readFileSync(
   new URL("./fixtures/feed.xml", import.meta.url),
@@ -23,7 +24,15 @@ async function render(props: Record<string, unknown> = {}) {
   return container.renderToString(Asmarss, { props: { url, ...props } });
 }
 
-afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  clearFeedCache();
+});
 
 describe("Asmarss", () => {
   it("renders every toot and the see more link", async () => {
@@ -113,6 +122,37 @@ describe("Asmarss", () => {
     const html = await render({ tags: true });
     expect(html).toContain("#astro");
     expect(html).toContain('href="https://example.social/tags/rss"');
+  });
+
+  it("sanitizes post content unless `sanitize={false}`", async () => {
+    mockFetch(feedXml);
+    const safe = await render();
+    expect(safe).toContain("Unsafe toot");
+    expect(safe).not.toContain("<script>alert(1)");
+    expect(safe).not.toContain("onerror");
+    const raw = await render({ sanitize: false });
+    expect(raw).toContain("<script>alert(1)</script>");
+  });
+
+  it("treats NaN and fractional limits sanely", async () => {
+    mockFetch(feedXml);
+    expect(await render({ limit: NaN })).toContain("First toot");
+    const html = await render({ limit: 1.9 });
+    expect(html).toContain("Second toot");
+    expect(html).not.toContain("First toot");
+  });
+
+  it("caches with `cacheTtl` and reports errors through `onError`", async () => {
+    mockFetch(feedXml);
+    await render({ cacheTtl: 60 });
+    await render({ cacheTtl: 60 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    clearFeedCache();
+    mockFetch("nope", 500);
+    const onError = vi.fn();
+    expect(await render({ onError })).toContain("Error loading feed");
+    expect(onError).toHaveBeenCalledWith(expect.any(Error), url);
   });
 
   it("renders no posts for a negative limit", async () => {

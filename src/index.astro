@@ -23,6 +23,16 @@ interface Props {
   locale?: string;
   /** IANA time zone used to format dates, e.g. `Europe/Istanbul`. */
   timeZone?: string;
+  /** Strip unsafe markup from post content. Defaults to `true`. */
+  sanitize?: boolean;
+  /** Cache the parsed feed in memory for this many seconds. Defaults to 0 (off). */
+  cacheTtl?: number;
+  /** Retry network errors, 5xx and 429 this many times. Defaults to 0. */
+  retries?: number;
+  /** Request timeout in milliseconds. Defaults to 10000. */
+  timeout?: number;
+  /** Called when the feed fails to load; replaces the default `console.warn`. */
+  onError?: (error: unknown, url: string) => void;
 }
 
 const {
@@ -36,11 +46,21 @@ const {
   labels,
   locale,
   timeZone,
+  sanitize = true,
+  cacheTtl,
+  retries,
+  timeout,
+  onError,
 }: Props = Astro.props;
 const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 
-const { items, link } = await parseFeed(url);
+const { items, link } = await parseFeed(url, {
+  timeoutMs: timeout,
+  cacheTtlMs: cacheTtl !== undefined ? cacheTtl * 1000 : undefined,
+  retries,
+  onError,
+});
 const maxItems =
   limit !== undefined && !Number.isNaN(limit)
     ? Math.max(0, Math.floor(limit))
@@ -68,6 +88,7 @@ const visibleItems =
             instanceUrl={link}
             locale={locale}
             timeZone={timeZone}
+            sanitize={sanitize}
             classList={classList}
           />
           {showSeparator && <hr class={classList.separator} />}

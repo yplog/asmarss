@@ -1,3 +1,5 @@
-export { parseFeed } from "./lib/parseFeed";
+export { parseFeed, clearFeedCache } from "./lib/parseFeed";
+export type { ParseFeedOptions } from "./lib/parseFeed";
+export { sanitizeContent } from "./lib/sanitize";
 export { formatDate } from "./lib/formatDate";
 export type { FeedEntry, FeedMedia, ParsedFeed } from "./types";

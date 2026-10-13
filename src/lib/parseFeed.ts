@@ -73,21 +73,116 @@ function parseItem(item: Raw): FeedEntry {
   };
 }
 
+export type ParseFeedOptions = {
+  /** Abort the request after this many milliseconds. Defaults to 10 000. */
+  timeoutMs?: number;
+  /** Keep a successfully parsed feed in memory for this long. Defaults to 0 (no cache). */
+  cacheTtlMs?: number;
+  /** Retries on network errors, 5xx and 429. Defaults to 0. */
+  retries?: number;
+  /** Base delay between retries; grows linearly. Defaults to 300. */
+  retryDelayMs?: number;
+  /** Called with the failure instead of the default `console.warn`. */
+  onError?: (error: unknown, url: string) => void;
+};
+
+type CacheEntry = {
+  feed: ParsedFeed;
+  expires: number;
+  etag?: string;
+  lastModified?: string;
+};
+
+const cache = new Map<string, CacheEntry>();
+
+/** Empties the in-memory feed cache. */
+export function clearFeedCache(): void {
+  cache.clear();
+}
+
+class HttpError extends Error {
+  constructor(readonly status: number) {
+    super(`HTTP ${status}`);
+  }
+}
+
+const isRetryable = (error: unknown) =>
+  !(error instanceof HttpError) || error.status >= 500 || error.status === 429;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function request(
+  url: string,
+  timeoutMs: number,
+  headers: Record<string, string>,
+): Promise<Response> {
+  const res = await fetch(url, {
+    signal: AbortSignal.timeout(timeoutMs),
+    ...(Object.keys(headers).length > 0 && { headers }),
+  });
+  if (!res.ok && res.status !== 304) throw new HttpError(res.status);
+  return res;
+}
+
+function parseXml(xml: string): ParsedFeed {
+  const channel = parser.parse(xml)?.rss?.channel;
+  if (!channel) throw new Error("Invalid RSS feed");
+
+  const items = ((channel.item as Raw[] | undefined) ?? []).map(parseItem);
+  return { items, link: safeUrl(channel.link) || null };
+}
+
 export async function parseFeed(
   url: string,
-  { timeoutMs = 10_000 }: { timeoutMs?: number } = {},
+  {
+    timeoutMs = 10_000,
+    cacheTtlMs = 0,
+    retries = 0,
+    retryDelayMs = 300,
+    onError,
+  }: ParseFeedOptions = {},
 ): Promise<ParsedFeed> {
+  const cached = cache.get(url);
+  if (cacheTtlMs > 0 && cached && cached.expires > Date.now()) {
+    return cached.feed;
+  }
+
+  const headers: Record<string, string> = {};
+  if (cacheTtlMs > 0 && cached?.etag) headers["If-None-Match"] = cached.etag;
+  if (cacheTtlMs > 0 && cached?.lastModified) {
+    headers["If-Modified-Since"] = cached.lastModified;
+  }
+
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let res: Response | undefined;
+    for (let attempt = 0; !res; attempt++) {
+      try {
+        res = await request(url, timeoutMs, headers);
+      } catch (error) {
+        if (attempt >= retries || !isRetryable(error)) throw error;
+        await sleep(retryDelayMs * (attempt + 1));
+      }
+    }
 
-    const channel = parser.parse(await res.text())?.rss?.channel;
-    if (!channel) throw new Error("Invalid RSS feed");
+    if (res.status === 304 && cached) {
+      cached.expires = Date.now() + cacheTtlMs;
+      return cached.feed;
+    }
 
-    const items = ((channel.item as Raw[] | undefined) ?? []).map(parseItem);
-
-    return { items, link: safeUrl(channel.link) || null };
-  } catch {
-    return { items: null, link: null };
+    const feed = parseXml(await res.text());
+    if (cacheTtlMs > 0) {
+      cache.set(url, {
+        feed,
+        expires: Date.now() + cacheTtlMs,
+        etag: res.headers.get("etag") ?? undefined,
+        lastModified: res.headers.get("last-modified") ?? undefined,
+      });
+    }
+    return feed;
+  } catch (error) {
+    if (onError) onError(error, url);
+    else console.warn(`[asmarss] Failed to load ${url}:`, error);
+    // Serve the stale copy rather than an error when we have one.
+    return cacheTtlMs > 0 && cached ? cached.feed : { items: null, link: null };
   }
 }
