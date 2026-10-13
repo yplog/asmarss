@@ -14,22 +14,25 @@ npm i asmarss
 
 ## Usage
 
-| Prop        | Type        | Default | Description                                                    |
-| ----------- | ----------- | ------- | -------------------------------------------------------------- |
-| `url`       | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`) |
-| `classList` | `ClassList` | `{}`    | CSS classes to add to the rendered elements                    |
-| `limit`     | `number`    | all     | Maximum number of posts to render                              |
-| `separator` | `boolean`   | `false` | Render an `<hr>` after each post                               |
-| `media`     | `boolean`   | `true`  | Render attached images (with alt text), videos and audio       |
-| `tags`      | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages      |
-| `labels`    | `Labels`    | English | Override the built-in texts (see below)                        |
-| `locale`    | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                          |
-| `timeZone`  | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`               |
-| `sanitize`  | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)           |
-| `cacheTtl`  | `number`    | `0`     | Cache the parsed feed in memory for this many seconds          |
-| `retries`   | `number`    | `0`     | Retry network errors, 5xx and 429 this many times              |
-| `timeout`   | `number`    | `10000` | Request timeout in milliseconds                                |
-| `onError`   | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`    |
+| Prop        | Type        | Default | Description                                                        |
+| ----------- | ----------- | ------- | ------------------------------------------------------------------ |
+| `url`       | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`)     |
+| `account`   | `string`    | –       | Full account name, e.g. `@user@mastodon.social` (instead of `url`) |
+| `instance`  | `string`    | –       | Instance host, e.g. `mastodon.social`; use with `username`         |
+| `username`  | `string`    | –       | Account name on the instance, e.g. `user`; use with `instance`     |
+| `classList` | `ClassList` | `{}`    | CSS classes to add to the rendered elements                        |
+| `limit`     | `number`    | all     | Maximum number of posts to render                                  |
+| `separator` | `boolean`   | `false` | Render an `<hr>` after each post                                   |
+| `media`     | `boolean`   | `true`  | Render attached images (with alt text), videos and audio           |
+| `tags`      | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages          |
+| `labels`    | `Labels`    | English | Override the built-in texts (see below)                            |
+| `locale`    | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                              |
+| `timeZone`  | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`                   |
+| `sanitize`  | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)               |
+| `cacheTtl`  | `number`    | `0`     | Cache the parsed feed in memory for this many seconds              |
+| `retries`   | `number`    | `0`     | Retry network errors, 5xx and 429 this many times                  |
+| `timeout`   | `number`    | `10000` | Request timeout in milliseconds                                    |
+| `onError`   | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`        |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -43,6 +46,15 @@ For example css file:
 .global-font-size {
   font-size: 1.5rem;
 }
+```
+
+The account can be given in three ways. If more than one is set, `url` wins, then
+`account`, then `instance` + `username`:
+
+```html
+<Asmarss account="@username@mastodon.instance" />
+<Asmarss instance="mastodon.instance" username="username" />
+<Asmarss url="https://mastodon.instance/@username.rss" />
 ```
 
 In your Astro file:
@@ -157,7 +169,8 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 `items` is `null` when the request fails or the feed is invalid. Each entry has
 `link`, `pubDate`, `content` (HTML), `media` and `tags`. `parseFeed` accepts
 `{ timeoutMs, cacheTtlMs, retries, retryDelayMs, onError }` as a second argument.
-`clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
+`mastodonFeedUrl("@user@instance")` (or `mastodonFeedUrl("instance", "user")`) builds the
+RSS address and returns `null` for invalid input. `clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
 sanitizer the component uses: apply it before `set:html` when rendering `item.content` yourself.
 
 ## Requirements

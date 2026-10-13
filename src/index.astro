@@ -2,12 +2,36 @@
 import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
-import { parseFeed } from "./lib/parseFeed";
+import { parseFeed, reportError } from "./lib/parseFeed";
+import { mastodonFeedUrl } from "./lib/feedUrl";
 import { defaultLabels } from "./lib/labels";
 import type { ClassList, Labels } from "./types";
 
-interface Props {
-  url: string;
+type Source =
+  | {
+      /** RSS URL of the Mastodon account, e.g. `https://mastodon.social/@user.rss`. */
+      url: string;
+      account?: never;
+      instance?: never;
+      username?: never;
+    }
+  | {
+      /** Full account name, e.g. `@user@mastodon.social`. */
+      account: string;
+      url?: never;
+      instance?: never;
+      username?: never;
+    }
+  | {
+      /** Instance host, e.g. `mastodon.social`. Use together with `username`. */
+      instance: string;
+      /** Account name on the instance, e.g. `user`. */
+      username: string;
+      url?: never;
+      account?: never;
+    };
+
+interface Options {
   classList?: ClassList;
   limit?: number;
   separator?: boolean;
@@ -35,8 +59,13 @@ interface Props {
   onError?: (error: unknown, url: string) => void;
 }
 
+type Props = Source & Options;
+
 const {
-  url,
+  url: urlProp,
+  account,
+  instance,
+  username,
   classList = {},
   limit,
   separator,
@@ -55,12 +84,32 @@ const {
 const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 
-const { items, link } = await parseFeed(url, {
-  timeoutMs: timeout,
-  cacheTtlMs: cacheTtl !== undefined ? cacheTtl * 1000 : undefined,
-  retries,
-  onError,
-});
+// url > account > instance + username
+const url =
+  urlProp ??
+  (account !== undefined
+    ? mastodonFeedUrl(account)
+    : instance !== undefined && username !== undefined
+      ? mastodonFeedUrl(instance, username)
+      : null);
+
+let items: Awaited<ReturnType<typeof parseFeed>>["items"] = null;
+let link: string | null = null;
+if (url) {
+  ({ items, link } = await parseFeed(url, {
+    timeoutMs: timeout,
+    cacheTtlMs: cacheTtl !== undefined ? cacheTtl * 1000 : undefined,
+    retries,
+    onError,
+  }));
+} else {
+  const given = urlProp ?? account ?? `${instance ?? ""} ${username ?? ""}`;
+  reportError(
+    new Error("Invalid or missing feed source"),
+    given.trim(),
+    onError,
+  );
+}
 const maxItems =
   limit !== undefined && !Number.isNaN(limit)
     ? Math.max(0, Math.floor(limit))

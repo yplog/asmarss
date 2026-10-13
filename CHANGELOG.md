@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+### Added
+
+- `account` prop (`@user@instance`) and `instance` + `username` props as shorter alternatives to `url`. Precedence: `url`, then `account`, then `instance` + `username`.
+- `mastodonFeedUrl` export in `asmarss/feed` to build the RSS address from an account name.
+- An invalid or missing source renders the error message and is reported through `onError` / `console.warn` without a request.
+
+### Changed
+
+- `url` is no longer required when `account` or `instance` + `username` is given.
+
 ## 0.6.0
 
 ### Added
