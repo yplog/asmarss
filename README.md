@@ -4,6 +4,10 @@
 
 A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed in a Astro Component.
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/asmarss/tree/main/example)
+
+![asmarss rendering the latest posts of @Mastodon@mastodon.social](https://raw.githubusercontent.com/yplog/asmarss/main/.github/assets/demo.png)
+
 ## Installation
 
 In your Astro project, run:
@@ -225,6 +229,18 @@ sanitizer the component uses: apply it before `set:html` when rendering `item.co
 ## Security
 
 Post content is rendered as HTML (`set:html`) after being sanitized with [sanitize-html](https://github.com/apostrophecms/sanitize-html): only the markup Mastodon produces (paragraphs, links, lists, quotes, code) is kept, links get `rel="nofollow noopener noreferrer"` and `target="_blank"`, and only `http`, `https` and `mailto` URLs survive. Set `sanitize={false}` to render the content as is, and only do that for instances you trust.
+
+## Example
+
+[`example/`](example) is a small Astro project that renders live posts from
+mastodon.social: a single account with a header, a tag filter, and merged feeds.
+Open it in StackBlitz with the badge above, or run it locally:
+
+```bash
+cd example
+npm install
+npm run dev
+```
 
 ## Contributing
 
