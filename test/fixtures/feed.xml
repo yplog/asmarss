@@ -44,5 +44,11 @@
         <media:description type="plain">Hidden picture</media:description>
       </media:content>
     </item>
+    <item>
+      <guid>https://example.social/@test/5</guid>
+      <link>https://example.social/@test/5</link>
+      <pubDate>Sun, 05 Oct 2025 09:00:00 +0000</pubDate>
+      <description>&lt;p&gt;Unsafe toot&lt;script&gt;alert(1)&lt;/script&gt;&lt;img src=x onerror=alert(2)&gt;&lt;/p&gt;</description>
+    </item>
   </channel>
 </rss>

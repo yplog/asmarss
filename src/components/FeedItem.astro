@@ -1,6 +1,7 @@
 ---
 import FeedMedia from "./FeedMedia.astro";
 import { formatDate } from "../lib/formatDate";
+import { sanitizeContent } from "../lib/sanitize";
 import type { ClassList, FeedMedia as FeedMediaType, Labels } from "../types";
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   instanceUrl?: string | null;
   locale?: string;
   timeZone?: string;
+  sanitize?: boolean;
   classList?: ClassList;
 }
 
@@ -26,6 +28,7 @@ const {
   instanceUrl,
   locale,
   timeZone,
+  sanitize = true,
   classList,
 } = Astro.props;
 
@@ -51,7 +54,10 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       </div>
     </header>
   )}
-  <div class={classList?.toot__content} set:html={content} />
+  <div
+    class={classList?.toot__content}
+    set:html={sanitize ? sanitizeContent(content) : content}
+  />
   {media.length > 0 && (
     <FeedMedia
       media={media}

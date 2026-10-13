@@ -25,6 +25,11 @@ npm i asmarss
 | `labels`    | `Labels`    | English | Override the built-in texts (see below)                        |
 | `locale`    | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                          |
 | `timeZone`  | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`               |
+| `sanitize`  | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)           |
+| `cacheTtl`  | `number`    | `0`     | Cache the parsed feed in memory for this many seconds          |
+| `retries`   | `number`    | `0`     | Retry network errors, 5xx and 429 this many times              |
+| `timeout`   | `number`    | `10000` | Request timeout in milliseconds                                |
+| `onError`   | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`    |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -112,6 +117,16 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
 import type { Labels } from "asmarss/types";
 ```
 
+## Caching and errors
+
+With `cacheTtl` the parsed feed is kept in memory per URL. Once it expires, the
+next request revalidates it with `ETag` / `Last-Modified`, and a `304` reuses the
+cached copy. If a refresh fails, the stale copy is served instead of an error.
+
+Failures are logged with `console.warn("[asmarss] Failed to load <url>: …")`;
+pass `onError` to handle them yourself (the component still renders the error
+message, unless a stale cached copy exists).
+
 ## Headless usage
 
 `asmarss/feed` exposes the parser, so you can render the posts yourself:
@@ -141,7 +156,9 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 
 `items` is `null` when the request fails or the feed is invalid. Each entry has
 `link`, `pubDate`, `content` (HTML), `media` and `tags`. `parseFeed` accepts
-`{ timeoutMs }` as a second argument.
+`{ timeoutMs, cacheTtlMs, retries, retryDelayMs, onError }` as a second argument.
+`clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
+sanitizer the component uses: apply it before `set:html` when rendering `item.content` yourself.
 
 ## Requirements
 
@@ -149,7 +166,7 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 
 ## Security
 
-Post content is rendered as raw HTML (`set:html`). Mastodon sanitizes it on the server side, but only point `url` at instances you trust.
+Post content is rendered as HTML (`set:html`) after being sanitized with [sanitize-html](https://github.com/apostrophecms/sanitize-html): only the markup Mastodon produces (paragraphs, links, lists, quotes, code) is kept, links get `rel="nofollow noopener noreferrer"` and `target="_blank"`, and only `http`, `https` and `mailto` URLs survive. Set `sanitize={false}` to render the content as is, and only do that for instances you trust.
 
 ## Contributing
 
@@ -167,4 +184,5 @@ This project is licensed under the MIT License. Please refer to the license file
 
 ## Dependencies
 
+- [sanitize-html](https://github.com/apostrophecms/sanitize-html) - Cleans post content before it is rendered.
 - [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) - A fast XML parser, used to read the RSS feed.

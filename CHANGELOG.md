@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.0
+
+### Added
+
+- `cacheTtl` prop / `cacheTtlMs` option: in-memory feed cache with `ETag` / `Last-Modified` revalidation and stale-on-error.
+- `retries` (and `retryDelayMs`) for network errors, 5xx and 429; `timeout` prop.
+- `onError` callback for failed requests.
+- `sanitize` prop (default `true`) and `sanitizeContent` export in `asmarss/feed`; `clearFeedCache` and `ParseFeedOptions` are exported too.
+- `test:coverage` script; more tests for failure paths, caching, retries and sanitization.
+
+### Changed
+
+- Post content is sanitized by default (Mastodon markup only). Pass `sanitize={false}` for the previous behaviour.
+- Failed requests are logged with `console.warn` instead of being swallowed silently.
+- New dependency: `sanitize-html`.
+
 ## 0.5.0
 
 ### Added
