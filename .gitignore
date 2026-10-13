@@ -25,3 +25,4 @@ pnpm-debug.log*
 
 # test coverage
 coverage
+example/package-lock.json

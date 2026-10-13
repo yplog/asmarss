@@ -1,0 +1,103 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+h1 {
+  margin-bottom: 0.25rem;
+}
+
+section.demo {
+  margin-top: 3rem;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.85rem;
+}
+
+.feed__header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.feed__avatar,
+.toot__author__avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.toot__author__avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.feed__title,
+.toot__author__name {
+  font-weight: 600;
+}
+
+.feed__description {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.feed__list {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.toot {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.75rem;
+}
+
+.toot__author {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.toot__header {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.toot__media img,
+.toot__media video {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+.toot__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.toot__footer {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}

@@ -1,0 +1,66 @@
+---
+import Asmarss from "asmarss";
+import "../styles.css";
+
+const classList = {
+  feed__list: "feed__list",
+  feed__header: "feed__header",
+  feed__avatar: "feed__avatar",
+  feed__title: "feed__title",
+  feed__description: "feed__description",
+  toot: "toot",
+  toot__header: "toot__header",
+  toot__media: "toot__media",
+  toot__tags: "toot__tags",
+  toot__footer: "toot__footer",
+  toot__author: "toot__author",
+  toot__author__avatar: "toot__author__avatar",
+  toot__author__name: "toot__author__name",
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>asmarss example</title>
+  </head>
+  <body>
+    <h1>asmarss</h1>
+    <p>Mastodon posts as an Astro component. Live data from mastodon.social.</p>
+
+    <section class="demo">
+      <h2>A single account</h2>
+      <pre>&lt;Asmarss account="@Mastodon@mastodon.social" header tags limit=&#123;3&#125; /&gt;</pre>
+      <Asmarss
+        account="@Mastodon@mastodon.social"
+        header
+        tags
+        limit={3}
+        classList={classList}
+      />
+    </section>
+
+    <section class="demo">
+      <h2>Filtered by tag, with media only</h2>
+      <pre>&lt;Asmarss account="@Mastodon@mastodon.social" tag="Plushtodon" onlyWithMedia limit=&#123;2&#125; /&gt;</pre>
+      <Asmarss
+        account="@Mastodon@mastodon.social"
+        tag="Plushtodon"
+        onlyWithMedia
+        limit={2}
+        classList={classList}
+      />
+    </section>
+
+    <section class="demo">
+      <h2>Several accounts, merged</h2>
+      <pre>&lt;Asmarss account=&#123;["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]&#125; limit=&#123;4&#125; /&gt;</pre>
+      <Asmarss
+        account={["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]}
+        limit={4}
+        classList={classList}
+      />
+    </section>
+  </body>
+</html>

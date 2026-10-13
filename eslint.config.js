@@ -5,7 +5,7 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["node_modules", "coverage", ".astro", "dist"] },
+  { ignores: ["**/node_modules", "**/coverage", "**/.astro", "**/dist"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...astro.configs.recommended,
