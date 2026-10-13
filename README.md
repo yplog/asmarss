@@ -6,7 +6,7 @@ A package that enables tracking the most recent posts of a Mastodon account and 
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/asmarss/tree/main/example)
 
-![asmarss rendering the latest posts of @Mastodon@mastodon.social](https://raw.githubusercontent.com/yplog/asmarss/main/.github/assets/demo.png)
+<img src="https://raw.githubusercontent.com/yplog/asmarss/main/.github/assets/demo.png" alt="asmarss rendering the latest posts of @Mastodon@mastodon.social" width="520">
 
 ## Installation
 
