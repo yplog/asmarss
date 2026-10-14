@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0
+
+### Added
+
+- `embed` prop: PeerTube videos play in the page through the feed's player (`media:embed`) instead of a linked thumbnail. Only https players on the post's own origin are framed, in a sandboxed iframe; otherwise the thumbnail stays. `media={false}` hides the player too. New `post__embed` class.
+- `FeedEntry.embed` holds the player URL for headless use.
+
+### Removed
+
+- **Breaking:** the `toot*` `classList` keys, deprecated in 1.0.0. Use the `post*` names.
+- **Breaking:** the misspelled `seperator` prop. Use `separator`.
+
+### Changed
+
+- Internal clean-up with no change to the rendered HTML: source resolution, XML parsing and error reporting are split out of the component and `parseFeed`, and new-tab links, the video preview and the status messages are shared components.
+
 ## 1.0.1
 
 ### Changed

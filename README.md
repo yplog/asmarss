@@ -35,6 +35,7 @@ npm i astro-fedifeed
 | `limit`         | `number`    | all       | Maximum number of posts to render                                      |
 | `separator`     | `boolean`   | `false`   | Render an `<hr>` after each post                                       |
 | `media`         | `boolean`   | `true`    | Render attached images (with alt text), videos and audio               |
+| `embed`         | `boolean`   | `false`   | Play PeerTube videos in the page instead of linking the thumbnail      |
 | `tags`          | `boolean`   | `false`   | Render a hashtag list linking to the instance's tag pages              |
 | `labels`        | `Labels`    | English   | Override the built-in texts (see below)                                |
 | `locale`        | `string`    | –         | BCP 47 locale for dates, e.g. `tr-TR`                                  |
@@ -48,8 +49,6 @@ npm i astro-fedifeed
 | `retries`       | `number`    | `0`       | Retry network errors, 5xx and 429 this many times                      |
 | `timeout`       | `number`    | `10000`   | Request timeout in milliseconds                                        |
 | `onError`       | `function`  | –         | `(error, url) => void`, replaces the default `console.warn`            |
-
-> `seperator` (the old, misspelled name) still works but is deprecated.
 
 For example css file:
 
@@ -112,6 +111,7 @@ type ClassList = {
   post__header__date?: string; // the class of the post date
   post__title?: string; // the class of the post title (PeerTube)
   post__thumbnail?: string; // the class of the video thumbnail (PeerTube)
+  post__embed?: string; // the class of the video player iframe (embed prop)
   post__content?: string; // the class of the post content
   post__media?: string; // the class of the media wrapper
   post__media__item?: string; // the class of each img/video/audio
@@ -176,8 +176,18 @@ Mastodon), and `platform` overrides the guess. `channel` is PeerTube only.
   hashtags are read from the caption and link to `/discover/tags/<tag>`.
 - **PeerTube** (`/feeds/videos.xml?accountName=…` or `?videoChannelName=…`): each
   video shows its title and thumbnail linking to the video page, followed by the
-  description. Video files aren't embedded (`media={false}` hides the thumbnail).
-  PeerTube's categories aren't hashtags, so `tags` renders nothing.
+  description. With `embed`, the thumbnail is replaced by PeerTube's own player
+  (`media:embed` in the RSS feed; Atom feeds don't have it and keep the
+  thumbnail). `media={false}` hides both. PeerTube's categories aren't hashtags,
+  so `tags` renders nothing.
+
+```html
+<FediFeed channel="@blender_studio@video.blender.org" embed
+  classList={{ post__embed: "player" }} />
+```
+
+The player is a `560×315` iframe with no styling of its own; to make it fill the
+post, set for example `.player { width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; }`.
 
 `onlyWithMedia`, `tag` and `replies` only exist for Mastodon. On other platforms
 they are ignored and reported through `onError` (or `console.warn`).
@@ -254,7 +264,7 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 
 `items` is `null` when the request fails or the feed is invalid. Both RSS and Atom
 are parsed. Each entry has `link`, `pubDate`, `content` (HTML), `media` and `tags`,
-plus `title` and `thumbnail` when the feed has them. `parseFeed` accepts
+plus `title`, `thumbnail` and `embed` (the player URL) when the feed has them. `parseFeed` accepts
 `{ timeoutMs, cacheTtlMs, retries, retryDelayMs, onError }` as a second argument.
 `parseFeeds([url1, url2], options)` merges feeds the same way as the component
 (`{ items, feeds }`, each item has a `source`), and `filterItems(items, { onlyWithMedia, tag })`
@@ -275,6 +285,8 @@ sanitizer the component uses: apply it before `set:html` when rendering `item.co
 
 Post content is rendered as HTML (`set:html`) after being sanitized with [sanitize-html](https://github.com/apostrophecms/sanitize-html): only the markup Mastodon produces (paragraphs, links, lists, quotes, code) is kept, links get `rel="nofollow noopener noreferrer"` and `target="_blank"`, and only `http`, `https` and `mailto` URLs survive. Set `sanitize={false}` to render the content as is, and only do that for instances you trust.
 
+`embed` is off by default, since the player loads the instance's scripts in the page. When it is on, only `https` players on the same origin as the post are framed, inside a sandboxed iframe (`allow-scripts allow-same-origin allow-popups allow-presentation`); any other player falls back to the thumbnail.
+
 ## Example
 
 [`example/`](example) is a small Astro project that renders live posts from
@@ -289,6 +301,14 @@ npm install
 npm run dev
 ```
 
+## Upgrading to 2.0
+
+2.0 removes the names deprecated in 1.0:
+
+- `classList` keys starting with `toot` no longer apply: rename them to `post`
+  (`toot` → `post`, `toot__content` → `post__content`, …).
+- The misspelled `seperator` prop is gone: use `separator`.
+
 ## Migrating from asmarss
 
 1. Replace the package: `npm uninstall asmarss && npm i astro-fedifeed`.
@@ -296,8 +316,7 @@ npm run dev
    `astro-fedifeed/feed`, `asmarss/types` → `astro-fedifeed/types`. The component
    is the default export, so it can keep any local name.
 3. Rename the `classList` keys that start with `toot` to `post` (`toot__content`
-   → `post__content`). The old keys still work for now and log a one-time
-   deprecation warning.
+   → `post__content`). The old keys were removed in 2.0 (see [Upgrading to 2.0](#upgrading-to-20)).
 4. Log messages are prefixed with `[astro-fedifeed]` instead of `[asmarss]`.
 5. Node.js >= 24 and `astro` >= 6 are required.
 
