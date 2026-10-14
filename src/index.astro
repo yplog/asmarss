@@ -1,7 +1,6 @@
 ---
 import FeedItem from "./components/FeedItem.astro";
-import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
-import NoItemsInFeed from "./components/NoItemsInFeed.astro";
+import FeedMessage from "./components/FeedMessage.astro";
 import FeedHeader from "./components/FeedHeader.astro";
 import ExternalLink from "./components/ExternalLink.astro";
 import { parseFeed, parseFeeds } from "./lib/parseFeed";
@@ -184,9 +183,12 @@ const visibleItems =
     <FeedHeader feeds={feeds} classList={classList} />
   )}
   {!visibleItems ? (
-    <ErrorLoadingFeed label={l.errorLoadingFeed} classList={classList} />
+    <FeedMessage
+      label={l.errorLoadingFeed}
+      class={classList.error_loading_feed}
+    />
   ) : visibleItems.length === 0 ? (
-    <NoItemsInFeed label={l.noItemsInFeed} classList={classList} />
+    <FeedMessage label={l.noItemsInFeed} class={classList.no_items_in_feed} />
   ) : (
     <ul class={classList.feed__list}>
       {visibleItems.map(({ item, platform: itemPlatform }) => (
