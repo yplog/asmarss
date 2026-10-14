@@ -76,11 +76,10 @@ describe("FediFeed", () => {
     expect(html).not.toContain("First toot");
   });
 
-  it("renders separators with `separator` and the deprecated `seperator`", async () => {
+  it("renders separators with `separator`", async () => {
     mockFetch(feedXml);
     expect(await render()).not.toContain("<hr");
     expect(await render({ separator: true })).toContain("<hr");
-    expect(await render({ seperator: true })).toContain("<hr");
   });
 
   it("applies classList entries", async () => {
@@ -497,24 +496,5 @@ describe("FediFeed", () => {
     expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
       "https://tube.example/feeds/videos.xml?videoChannelName=c",
     );
-  });
-
-  it("maps deprecated toot classList keys to post and warns once", async () => {
-    mockFetch(feedXml);
-    const html = await render({
-      classList: { toot: "old", toot__content: "c", post__content: "new" },
-    });
-    expect(html).toMatch(/<article[^>]*class="old"/);
-    expect(html).toContain('class="new"');
-    expect(html).not.toContain('class="c"');
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'classList keys starting with "toot" are deprecated',
-      ),
-    );
-
-    vi.mocked(console.warn).mockClear();
-    await render({ classList: { toot: "old" } });
-    expect(console.warn).not.toHaveBeenCalled();
   });
 });

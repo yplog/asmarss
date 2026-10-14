@@ -15,7 +15,6 @@ import {
   peertubeFeedUrl,
   pixelfedFeedUrl,
 } from "./lib/feedUrl";
-import { resolveClassList } from "./lib/classList";
 import { defaultLabels } from "./lib/labels";
 import {
   detectPlatform,
@@ -67,8 +66,6 @@ interface Options {
   classList?: ClassList;
   limit?: number;
   separator?: boolean;
-  /** @deprecated Misspelled, use `separator` instead. */
-  seperator?: boolean;
   /** Render attached images, videos and audio. Defaults to `true`. */
   media?: boolean;
   /** Play videos in the page through the feed's player (PeerTube). Defaults to `false`. */
@@ -110,10 +107,9 @@ const {
   instance,
   username,
   platform,
-  classList: classListProp = {},
+  classList = {},
   limit,
-  separator,
-  seperator,
+  separator = false,
   media = true,
   embed = false,
   tags = false,
@@ -130,8 +126,6 @@ const {
   timeout,
   onError,
 }: Props = Astro.props;
-const classList = resolveClassList(classListProp);
-const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 
 const toList = (value: string | string[] | undefined) =>
@@ -303,7 +297,7 @@ const visibleItems =
             sanitize={sanitize}
             classList={classList}
           />
-          {showSeparator && <hr class={classList.separator} />}
+          {separator && <hr class={classList.separator} />}
         </li>
       ))}
     </ul>
