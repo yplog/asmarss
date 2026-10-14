@@ -52,10 +52,15 @@ export type FeedSource = {
 
 export type FeedEntry = {
   link: string;
+  /** RSS `pubDate`, or Atom `published` / `updated`. */
   pubDate: string;
   content: string;
   media: FeedMedia[];
   tags: string[];
+  /** Post title (PeerTube video title; Pixelfed repeats the caption). Missing on Mastodon. */
+  title?: string;
+  /** Post-level preview image, e.g. a PeerTube video thumbnail. */
+  thumbnail?: string;
   source?: FeedSource;
 };
 

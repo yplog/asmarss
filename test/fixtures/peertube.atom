@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://tube.example/c/test_channel/videos</id>
+    <title>Test Channel</title>
+    <updated>2025-10-04T08:00:00.000Z</updated>
+    <generator>PeerTube - https://tube.example</generator>
+    <author>
+        <name>Test Channel</name>
+        <uri>https://tube.example/c/test_channel/videos</uri>
+    </author>
+    <link rel="alternate" href="https://tube.example/c/test_channel/videos"/>
+    <link rel="self" href="https://tube.example/feeds/videos.atom?videoChannelName=test_channel&amp;format=atom"/>
+    <subtitle>Videos from the test channel</subtitle>
+    <logo>https://tube.example/lazy-static/avatars/test.webp</logo>
+    <icon>https://tube.example/static/uploads/images/instance-logo.svg</icon>
+    <entry>
+        <title type="html"><![CDATA[Making of: the first video]]></title>
+        <id>https://tube.example/w/abc123</id>
+        <link href="https://tube.example/w/abc123"/>
+        <updated>2025-10-04T08:00:00.000Z</updated>
+        <summary type="html"><![CDATA[A look behind the scenes of our first...]]></summary>
+        <content type="html"><![CDATA[<p>A look behind the scenes of our first video.</p>
+]]></content>
+        <author>
+            <name>Test Channel</name>
+            <uri>https://tube.example/c/test_channel/videos</uri>
+        </author>
+    </entry>
+</feed>

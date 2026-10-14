@@ -138,6 +138,124 @@ describe("asmarss/feed", () => {
   });
 });
 
+const fixture = (name: string) =>
+  readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf-8");
+
+const serve = (body: string) =>
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(body)),
+  );
+
+describe("Atom feeds", () => {
+  it("parses a Pixelfed feed", async () => {
+    serve(fixture("pixelfed.atom"));
+    const feed = await parseFeed("https://pixelfed.example/users/test.atom");
+    expect(feed).toMatchObject({
+      link: "https://pixelfed.example/test",
+      title: "test on pixelfed.example",
+      description: "Hi, I'm a photographer",
+      image: "https://pixelfed.example/storage/avatars/test.jpg",
+    });
+    expect(feed.items).toHaveLength(2);
+
+    const [first, second] = feed.items ?? [];
+    expect(first).toMatchObject({
+      link: "https://pixelfed.example/p/test/2",
+      pubDate: "2025-10-04T08:00:00.000Z",
+      title: "Sunset at the lake #nature",
+      tags: [],
+    });
+    expect(first.content).toMatch(/^<div class="media-gallery">/);
+    expect(first.content).toContain("Sunset at the lake");
+    expect(first.media).toEqual([
+      {
+        url: "https://cdn.pixelfed.example/m/sunset.jpg",
+        type: "image/jpg",
+        medium: "image",
+        description: "",
+        sensitive: false,
+      },
+    ]);
+    expect(second.media).toHaveLength(2);
+  });
+
+  it("parses a PeerTube Atom feed, preferring logo over icon", async () => {
+    serve(fixture("peertube.atom"));
+    const feed = await parseFeed("https://tube.example/feeds/videos.atom");
+    expect(feed).toMatchObject({
+      link: "https://tube.example/c/test_channel/videos",
+      title: "Test Channel",
+      description: "Videos from the test channel",
+      image: "https://tube.example/lazy-static/avatars/test.webp",
+    });
+    expect(feed.items?.[0]).toMatchObject({
+      link: "https://tube.example/w/abc123",
+      title: "Making of: the first video",
+      content: "<p>A look behind the scenes of our first video.</p>",
+      media: [],
+    });
+  });
+
+  it("reads published, category terms and falls back to summary", async () => {
+    serve(`<feed xmlns="http://www.w3.org/2005/Atom">
+      <link href="javascript:alert(1)"/>
+      <entry>
+        <link rel="self" href="https://example.org/self"/>
+        <link rel="alternate" href="https://example.org/post"/>
+        <published>2025-10-01T00:00:00Z</published>
+        <updated>2025-10-05T00:00:00Z</updated>
+        <summary>Only a summary</summary>
+        <category term="astro"/><category term="rss"/>
+      </entry>
+    </feed>`);
+    const feed = await parseFeed(url);
+    expect(feed.link).toBeNull();
+    expect(feed.items?.[0]).toEqual({
+      link: "https://example.org/post",
+      pubDate: "2025-10-01T00:00:00Z",
+      content: "Only a summary",
+      media: [],
+      tags: ["astro", "rss"],
+    });
+  });
+});
+
+describe("PeerTube RSS", () => {
+  it("prefers content:encoded and reads the title and thumbnail", async () => {
+    serve(fixture("peertube.xml"));
+    const feed = await parseFeed("https://tube.example/feeds/videos.xml");
+    expect(feed).toMatchObject({
+      link: "https://tube.example/c/test_channel/videos",
+      title: "Test Channel",
+      image: "https://tube.example/lazy-static/avatars/test.png",
+    });
+
+    const [video, teaser] = feed.items ?? [];
+    expect(video).toMatchObject({
+      title: "Making of: the first video",
+      thumbnail: "https://tube.example/lazy-static/thumbnails/abc123.jpg",
+      tags: ["Science & Technology"],
+    });
+    expect(video.content).toMatch(
+      /^<p>A look behind the scenes of our first video\.<\/p>/,
+    );
+    // Video files inside media:group are not attachments.
+    expect(video.media).toEqual([]);
+
+    expect(teaser.content).toBe("Short teaser");
+    expect(teaser).not.toHaveProperty("thumbnail");
+  });
+
+  it("leaves title and thumbnail out for Mastodon posts", async () => {
+    serve(feedXml);
+    for (const item of (await parseFeed(url)).items ?? []) {
+      expect(item).not.toHaveProperty("title");
+      expect(item).not.toHaveProperty("thumbnail");
+    }
+  });
+});
+
 describe("error reporting", () => {
   it("warns by default", async () => {
     const warn = quiet();

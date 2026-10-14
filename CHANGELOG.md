@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Atom feeds are parsed alongside RSS (`<feed>` / `<entry>`: `published` or `updated`, `content` or `summary`, the alternate `<link>`, `category` terms; `subtitle` and `logo` / `icon` for the header). Pixelfed (`/users/<user>.atom`) and PeerTube Atom feeds now work through `url`.
+- RSS items prefer `content:encoded` over `description`, so PeerTube feeds show the full video description.
+- `FeedEntry` has the optional fields `title` (PeerTube and Pixelfed) and `thumbnail` (the post-level `media:thumbnail`, e.g. a PeerTube video thumbnail).
+
+### Fixed
+
+- Numeric character references such as `&#039;` are decoded.
+
 ## 0.8.0
 
 ### Added
