@@ -34,20 +34,20 @@ pre {
 }
 
 .feed__avatar,
-.toot__author__avatar {
+.post__author__avatar {
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.toot__author__avatar {
+.post__author__avatar {
   width: 1.5rem;
   height: 1.5rem;
 }
 
 .feed__title,
-.toot__author__name {
+.post__author__name {
   font-weight: 600;
 }
 
@@ -64,31 +64,31 @@ pre {
   list-style: none;
 }
 
-.toot {
+.post {
   padding: 1rem;
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-radius: 0.75rem;
 }
 
-.toot__author {
+.post__author {
   display: flex;
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 0.5rem;
 }
 
-.toot__header {
+.post__header {
   font-size: 0.8rem;
   opacity: 0.7;
 }
 
-.toot__media img,
-.toot__media video {
+.post__media img,
+.post__media video {
   max-width: 100%;
   border-radius: 0.5rem;
 }
 
-.toot__tags {
+.post__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -97,7 +97,19 @@ pre {
   font-size: 0.85rem;
 }
 
-.toot__footer {
+.post__footer {
   margin-top: 0.5rem;
   font-size: 0.85rem;
+}
+
+.post__title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.post__thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0.5rem;
 }
