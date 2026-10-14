@@ -226,7 +226,7 @@ describe("Atom feeds", () => {
 });
 
 describe("PeerTube RSS", () => {
-  it("prefers content:encoded and reads the title and thumbnail", async () => {
+  it("prefers content:encoded and reads the title, thumbnail and player", async () => {
     serve(fixture("peertube.xml"));
     const feed = await parseFeed("https://tube.example/feeds/videos.xml");
     expect(feed).toMatchObject({
@@ -239,6 +239,7 @@ describe("PeerTube RSS", () => {
     expect(video).toMatchObject({
       title: "Making of: the first video",
       thumbnail: "https://tube.example/lazy-static/thumbnails/abc123.jpg",
+      embed: "https://tube.example/videos/embed/abc123",
       tags: ["Science & Technology"],
     });
     expect(video.content).toMatch(
@@ -249,13 +250,15 @@ describe("PeerTube RSS", () => {
 
     expect(teaser.content).toBe("Short teaser");
     expect(teaser).not.toHaveProperty("thumbnail");
+    expect(teaser).not.toHaveProperty("embed");
   });
 
-  it("leaves title and thumbnail out for Mastodon posts", async () => {
+  it("leaves title, thumbnail and player out for Mastodon posts", async () => {
     serve(feedXml);
     for (const item of (await parseFeed(url)).items ?? []) {
       expect(item).not.toHaveProperty("title");
       expect(item).not.toHaveProperty("thumbnail");
+      expect(item).not.toHaveProperty("embed");
     }
   });
 });
