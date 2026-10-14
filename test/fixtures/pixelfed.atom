@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+    <id>https://pixelfed.example/users/test.atom</id>
+    <title>test on pixelfed.example</title>
+    <subtitle type="html">Hi, I&#039;m a photographer</subtitle>
+    <updated>2025-10-04T08:00:00.000Z</updated>
+
+    <author>
+        <name>test</name>
+        <uri>https://pixelfed.example/test</uri>
+    </author>
+
+    <icon>https://pixelfed.example/storage/avatars/test.jpg</icon>
+    <logo>https://pixelfed.example/storage/avatars/test.jpg</logo>
+
+    <link rel="alternate" type="text/html" href="https://pixelfed.example/test" />
+    <link rel="self" type="application/atom+xml" href="https://pixelfed.example/users/test.atom" />
+
+    <entry>
+        <id>https://pixelfed.example/p/test/2</id>
+        <title>Sunset at the lake #nature</title>
+        <updated>2025-10-04T08:00:00.000Z</updated>
+        <author>
+            <name>test</name>
+            <uri>https://pixelfed.example/test</uri>
+        </author>
+        <content type="html">
+            <![CDATA[
+            <div class="media-gallery">
+                <img class="media-item" src="https://cdn.pixelfed.example/m/sunset.jpg" alt="Orange sky over a lake">
+            </div>
+            <p style="padding:10px;">Sunset at the lake <a href="https://pixelfed.example/discover/tags/nature?src=hash" title="#nature" class="u-url hashtag" rel="external nofollow noopener">#nature</a></p>
+            ]]>
+        </content>
+        <link rel="alternate" href="https://pixelfed.example/p/test/2" />
+        <summary type="html">Sunset at the lake &lt;a href=&quot;https://pixelfed.example/discover/tags/nature?src=hash&quot;&gt;#nature&lt;/a&gt;</summary>
+        <media:content
+            url="https://cdn.pixelfed.example/m/sunset.jpg"
+            type="image/jpg"
+            medium="image"
+        />
+    </entry>
+    <entry>
+        <id>https://pixelfed.example/p/test/1</id>
+        <title>Two cats</title>
+        <updated>2025-10-02T09:30:00.000Z</updated>
+        <content type="html">
+            <![CDATA[
+            <div class="media-gallery">
+                <img class="media-item" src="https://cdn.pixelfed.example/m/cat1.jpg" alt="">
+                <img class="media-item" src="https://cdn.pixelfed.example/m/cat2.jpg" alt="">
+            </div>
+            <p style="padding:10px;">Two cats</p>
+            ]]>
+        </content>
+        <link rel="alternate" href="https://pixelfed.example/p/test/1" />
+        <media:content url="https://cdn.pixelfed.example/m/cat1.jpg" type="image/jpg" medium="image" />
+        <media:content url="https://cdn.pixelfed.example/m/cat2.jpg" type="image/jpg" medium="image" />
+    </entry>
+</feed>

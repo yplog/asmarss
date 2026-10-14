@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:podcast="https://podcastindex.org/namespace/1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Test Channel</title>
+        <link>https://tube.example/c/test_channel/videos</link>
+        <description>Videos from the test channel</description>
+        <generator>PeerTube - https://tube.example</generator>
+        <image>
+            <title>Test Channel</title>
+            <url>https://tube.example/lazy-static/avatars/test.png</url>
+            <link>https://tube.example/c/test_channel/videos</link>
+        </image>
+        <atom:link href="https://tube.example/feeds/videos.xml?videoChannelName=test_channel" rel="self" type="application/rss+xml"/>
+        <item>
+            <title><![CDATA[Making of: the first video]]></title>
+            <link>https://tube.example/w/abc123</link>
+            <guid>https://tube.example/w/abc123</guid>
+            <pubDate>Sat, 04 Oct 2025 08:00:00 GMT</pubDate>
+            <description><![CDATA[A look behind the scenes of our first...]]></description>
+            <content:encoded><![CDATA[<p>A look behind the scenes of our first video.</p>
+<p>More at <a href="https://example.org/" target="_blank" rel="noopener noreferrer">example.org</a></p>
+]]></content:encoded>
+            <dc:creator>Test Channel</dc:creator>
+            <category>Science &amp; Technology</category>
+            <enclosure length="1056906000" type="video/mp4" url="https://tube.example/download/videos/generate/abc123?videoFileIds=1"/>
+            <media:community>
+                <media:statistics views="221"/>
+            </media:community>
+            <media:embed url="https://tube.example/videos/embed/abc123"/>
+            <media:player url="https://tube.example/w/abc123"/>
+            <media:group>
+                <media:peerLink type="application/x-bittorrent" href="https://tube.example/lazy-static/torrents/abc123-1080.torrent" isDefault="false"/>
+                <media:content type="audio/mp4" medium="video" height="0" fileSize="46637205" url="https://tube.example/static/web-videos/abc123-0.mp4" framerate="0" duration="3361" isDefault="true"/>
+                <media:content type="video/mp4" medium="video" height="1080" fileSize="1056906000" url="https://tube.example/static/streaming-playlists/hls/abc123-1080-fragmented.mp4" framerate="25" duration="3361" isDefault="false"/>
+                <media:content type="video/mp4" medium="video" height="720" fileSize="456906000" url="https://tube.example/static/streaming-playlists/hls/abc123-720-fragmented.mp4" framerate="25" duration="3361" isDefault="false"/>
+            </media:group>
+            <media:thumbnail url="https://tube.example/lazy-static/thumbnails/abc123.jpg" height="1400" width="1400"/>
+            <media:title type="plain">Making of: the first video</media:title>
+            <media:description type="plain">A look behind the scenes of our first video.</media:description>
+            <media:rating>nonadult</media:rating>
+        </item>
+        <item>
+            <title><![CDATA[Short teaser]]></title>
+            <link>https://tube.example/w/def456</link>
+            <guid>https://tube.example/w/def456</guid>
+            <pubDate>Thu, 02 Oct 2025 09:30:00 GMT</pubDate>
+            <description><![CDATA[Short teaser]]></description>
+            <media:thumbnail url="javascript:alert(1)"/>
+        </item>
+    </channel>
+</rss>
