@@ -51,7 +51,7 @@ const {
   timeZone,
   sanitize = true,
   author,
-  classList,
+  classList = {},
 } = Astro.props;
 
 const tagHref = (tag: string) => tagUrl(platform, tag, instanceUrl ?? link);
@@ -62,33 +62,33 @@ const hasDate = !Number.isNaN(date.getTime());
 const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
 ---
 
-<article class={classList?.post}>
+<article class={classList.post}>
   {author && (author.title || author.image) && (
-    <div class={classList?.post__author}>
+    <div class={classList.post__author}>
       {author.image && (
         <img
-          class={classList?.post__author__avatar}
+          class={classList.post__author__avatar}
           src={author.image}
           alt=""
           loading="lazy"
         />
       )}
       {author.title && (
-        <ExternalLink class={classList?.post__author__name} href={author.link}>
+        <ExternalLink class={classList.post__author__name} href={author.link}>
           {author.title}
         </ExternalLink>
       )}
     </div>
   )}
   {hasDate && (
-    <header class={classList?.post__header}>
-      <div class={classList?.post__header__date}>
+    <header class={classList.post__header}>
+      <div class={classList.post__header__date}>
         <time datetime={date.toISOString()}>{dateString}</time>
       </div>
     </header>
   )}
   {title && (
-    <div class={classList?.post__title}>
+    <div class={classList.post__title}>
       {link ? <ExternalLink href={link}>{title}</ExternalLink> : title}
     </div>
   )}
@@ -101,7 +101,7 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     classList={classList}
   />
   <div
-    class={classList?.post__content}
+    class={classList.post__content}
     set:html={sanitize ? sanitizeContent(content) : content}
   />
   {media.length > 0 && (
@@ -112,17 +112,17 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     />
   )}
   {tags.length > 0 && (
-    <ul class={classList?.post__tags}>
+    <ul class={classList.post__tags}>
       {tags.map((tag) => (
-        <li class={classList?.post__tag}>
+        <li class={classList.post__tag}>
           <ExternalLink href={tagHref(tag)}>#{tag}</ExternalLink>
         </li>
       ))}
     </ul>
   )}
   {link && (
-    <footer class={classList?.post__footer}>
-      <ExternalLink class={classList?.post__footer__link} href={link}>
+    <footer class={classList.post__footer}>
+      <ExternalLink class={classList.post__footer__link} href={link}>
         {viewLabel}
       </ExternalLink>
     </footer>
