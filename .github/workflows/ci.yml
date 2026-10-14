@@ -8,22 +8,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: node ${{ matrix.node }} / astro ${{ matrix.astro }}
+    name: astro ${{ matrix.astro }}
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24]
-        astro: [locked]
-        include:
-          # astro is a peer dependency (>=4): test the oldest and every major in between
-          - { node: 22, astro: "4" }
-          - { node: 22, astro: "5" }
-          - { node: 22, astro: "6" }
+        # astro is a peer dependency (>=6): test the locked 7.x and the previous major
+        astro: [locked, "6"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 24
           cache: npm
       - run: npm ci
       - if: matrix.astro != 'locked'
@@ -31,7 +26,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run check
-      - if: matrix.node == 24 && matrix.astro == 'locked'
+      - if: matrix.astro == 'locked'
         run: npm run test:coverage
-      - if: matrix.node != 24 || matrix.astro != 'locked'
+      - if: matrix.astro != 'locked'
         run: npm test

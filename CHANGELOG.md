@@ -4,9 +4,18 @@
 
 ### Added
 
+- Pixelfed and PeerTube support. A `platform` prop (`"mastodon"`, `"pixelfed"`, `"peertube"`) builds the feed address from `account` or `instance` + `username`; with `url` the platform is guessed from the address. A new `channel` prop takes a PeerTube video channel.
+- Pixelfed posts drop the duplicate image gallery from the caption and their title, and read hashtags from the caption (linking to `/discover/tags/<tag>`). PeerTube posts render the video title and thumbnail (`toot__title`, `toot__thumbnail`) and drop the category tags.
+- `viewOnPixelfed` and `viewOnPeerTube` labels.
+- `pixelfedFeedUrl`, `peertubeFeedUrl`, `detectPlatform`, `normalizeEntry` and the `Platform` and `PeerTubeFeedUrlOptions` types in `asmarss/feed`.
+- `onlyWithMedia`, `tag` and `replies` are ignored on Pixelfed and PeerTube, with a warning through `onError` / `console.warn`. An unknown `platform` is reported the same way.
 - Atom feeds are parsed alongside RSS (`<feed>` / `<entry>`: `published` or `updated`, `content` or `summary`, the alternate `<link>`, `category` terms; `subtitle` and `logo` / `icon` for the header). Pixelfed (`/users/<user>.atom`) and PeerTube Atom feeds now work through `url`.
 - RSS items prefer `content:encoded` over `description`, so PeerTube feeds show the full video description.
 - `FeedEntry` has the optional fields `title` (PeerTube and Pixelfed) and `thumbnail` (the post-level `media:thumbnail`, e.g. a PeerTube video thumbnail).
+
+### Changed
+
+- **Breaking:** requires Node.js >= 24 and `astro` >= 6. CI now runs on Node.js 24 against Astro 6 and 7.
 
 ### Fixed
 

@@ -37,7 +37,7 @@
     "check": "astro check"
   },
   "peerDependencies": {
-    "astro": ">=4"
+    "astro": ">=6"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
@@ -62,6 +62,6 @@
     "sanitize-html": "^2.18.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   }
 }

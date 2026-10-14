@@ -12,6 +12,9 @@ const emptyXml = `<?xml version="1.0"?><rss version="2.0"><channel><title>x</tit
 
 const url = "https://example.social/@test.rss";
 
+const fixture = (name: string) =>
+  readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf-8");
+
 function mockFetch(body: string, status = 200) {
   vi.stubGlobal(
     "fetch",
@@ -373,6 +376,126 @@ describe("Asmarss", () => {
     mockFetch(feedXml);
     expect(await render({ classList: { toot__author: "au" } })).not.toContain(
       'class="au"',
+    );
+  });
+
+  it("renders a Pixelfed feed from its url", async () => {
+    mockFetch(fixture("pixelfed.atom"));
+    const html = await render({
+      url: "https://pixelfed.example/users/test.atom",
+      tags: true,
+    });
+    expect(html).toContain("Sunset at the lake");
+    expect(html).not.toContain("media-gallery");
+    // Each image once, from the media list.
+    expect(html.match(/sunset\.jpg/g)).toHaveLength(1);
+    expect(html).toContain(
+      'href="https://pixelfed.example/discover/tags/nature"',
+    );
+    expect(html).toContain("View on Pixelfed");
+    expect(html).not.toContain("View on Mastodon");
+  });
+
+  it("renders a PeerTube channel with titles and thumbnails", async () => {
+    mockFetch(fixture("peertube.xml"));
+    const html = await render({
+      url: undefined,
+      channel: "@test_channel@tube.example",
+      tags: true,
+      classList: { toot__title: "tt", toot__thumbnail: "th" },
+    });
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+      "https://tube.example/feeds/videos.xml?videoChannelName=test_channel",
+    );
+    expect(html).toMatch(
+      /class="tt"[^>]*>\s*<a href="https:\/\/tube.example\/w\/abc123"/,
+    );
+    expect(html).toContain("Making of: the first video");
+    expect(html).toMatch(
+      /<img class="th" src="https:\/\/tube.example\/lazy-static\/thumbnails\/abc123.jpg"/,
+    );
+    expect(html).toContain("A look behind the scenes of our first video.");
+    expect(html).not.toContain("Science &amp; Technology");
+    expect(html).toContain("Watch on PeerTube");
+
+    expect(
+      await render({
+        url: undefined,
+        channel: "@test_channel@tube.example",
+        media: false,
+      }),
+    ).not.toContain("thumbnails/abc123.jpg");
+  });
+
+  it("builds Pixelfed and PeerTube addresses from `platform`", async () => {
+    mockFetch(emptyXml);
+    const calls = async (props: Record<string, unknown>) => {
+      vi.mocked(fetch).mockClear();
+      await render({ url: undefined, ...props });
+      return vi.mocked(fetch).mock.calls.map((c) => c[0]);
+    };
+    expect(
+      await calls({ platform: "pixelfed", account: "@test@pixelfed.example" }),
+    ).toEqual(["https://pixelfed.example/users/test.atom"]);
+    expect(
+      await calls({
+        platform: "peertube",
+        instance: "tube.example",
+        username: "test",
+      }),
+    ).toEqual(["https://tube.example/feeds/videos.xml?accountName=test"]);
+  });
+
+  it("warns about and ignores Mastodon-only options on other platforms", async () => {
+    mockFetch(fixture("pixelfed.atom"));
+    const onError = vi.fn();
+    const html = await render({
+      url: undefined,
+      platform: "pixelfed",
+      account: "@test@pixelfed.example",
+      tag: "missing",
+      replies: true,
+      onError,
+    });
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+      "https://pixelfed.example/users/test.atom",
+    );
+    expect(html).toContain("Sunset at the lake");
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(String(onError.mock.calls[0][0])).toContain(
+      "Ignoring Mastodon-only options on pixelfed: tag, replies",
+    );
+  });
+
+  it("warns without the load-failure wording when there is no onError", async () => {
+    mockFetch(emptyXml);
+    await render({ platform: "myspace" });
+    expect(console.warn).toHaveBeenCalledWith(
+      '[asmarss] Unknown platform "myspace"',
+    );
+  });
+
+  it("reports an unknown platform and a channel on another platform", async () => {
+    mockFetch(emptyXml);
+    const onError = vi.fn();
+    await render({ platform: "myspace", onError });
+    expect(String(onError.mock.calls[0][0])).toContain(
+      'Unknown platform "myspace"',
+    );
+
+    onError.mockClear();
+    vi.mocked(fetch).mockClear();
+    await render({
+      url: undefined,
+      platform: "pixelfed",
+      channel: "@c@tube.example",
+      onError,
+    });
+    expect(String(onError.mock.calls[0][0])).toContain(
+      "`channel` only works with PeerTube",
+    );
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+      "https://tube.example/feeds/videos.xml?videoChannelName=c",
     );
   });
 });

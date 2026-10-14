@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/asmarss.svg)](https://badge.fury.io/js/asmarss)
 
-A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed in a Astro Component.
+A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed in a Astro Component. Pixelfed accounts and PeerTube accounts or channels work too (RSS / Atom only, no API calls).
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/asmarss/tree/main/example)
 
@@ -18,29 +18,31 @@ npm i asmarss
 
 ## Usage
 
-| Prop            | Type        | Default | Description                                                        |
-| --------------- | ----------- | ------- | ------------------------------------------------------------------ |
-| `url`           | `string`    | –       | RSS URL of the Mastodon account (`https://instance/@user.rss`)     |
-| `account`       | `string`    | –       | Full account name, e.g. `@user@mastodon.social` (instead of `url`) |
-| `instance`      | `string`    | –       | Instance host, e.g. `mastodon.social`; use with `username`         |
-| `username`      | `string`    | –       | Account name on the instance, e.g. `user`; use with `instance`     |
-| `classList`     | `ClassList` | `{}`    | CSS classes to add to the rendered elements                        |
-| `limit`         | `number`    | all     | Maximum number of posts to render                                  |
-| `separator`     | `boolean`   | `false` | Render an `<hr>` after each post                                   |
-| `media`         | `boolean`   | `true`  | Render attached images (with alt text), videos and audio           |
-| `tags`          | `boolean`   | `false` | Render a hashtag list linking to the instance's tag pages          |
-| `labels`        | `Labels`    | English | Override the built-in texts (see below)                            |
-| `locale`        | `string`    | –       | BCP 47 locale for dates, e.g. `tr-TR`                              |
-| `timeZone`      | `string`    | –       | IANA time zone for dates, e.g. `Europe/Istanbul`                   |
-| `header`        | `boolean`   | `false` | Render the feed's avatar, title and description                    |
-| `onlyWithMedia` | `boolean`   | `false` | Only show posts with attachments                                   |
-| `tag`           | `string`    | –       | Only show posts with this hashtag (`astro` or `#astro`)            |
-| `replies`       | `boolean`   | `false` | Include replies (account sources only; ignored with `tag`)         |
-| `sanitize`      | `boolean`   | `true`  | Strip unsafe markup from post content (see Security)               |
-| `cacheTtl`      | `number`    | `0`     | Cache the parsed feed in memory for this many seconds              |
-| `retries`       | `number`    | `0`     | Retry network errors, 5xx and 429 this many times                  |
-| `timeout`       | `number`    | `10000` | Request timeout in milliseconds                                    |
-| `onError`       | `function`  | –       | `(error, url) => void`, replaces the default `console.warn`        |
+| Prop            | Type        | Default   | Description                                                            |
+| --------------- | ----------- | --------- | ---------------------------------------------------------------------- |
+| `url`           | `string`    | –         | RSS or Atom URL, e.g. `https://instance/@user.rss`                     |
+| `account`       | `string`    | –         | Full account name, e.g. `@user@mastodon.social` (instead of `url`)     |
+| `channel`       | `string`    | –         | PeerTube video channel, e.g. `@name@instance`                          |
+| `instance`      | `string`    | –         | Instance host, e.g. `mastodon.social`; use with `username`             |
+| `username`      | `string`    | –         | Account name on the instance, e.g. `user`; use with `instance`         |
+| `platform`      | `Platform`  | see below | `"mastodon"`, `"pixelfed"` or `"peertube"`                             |
+| `classList`     | `ClassList` | `{}`      | CSS classes to add to the rendered elements                            |
+| `limit`         | `number`    | all       | Maximum number of posts to render                                      |
+| `separator`     | `boolean`   | `false`   | Render an `<hr>` after each post                                       |
+| `media`         | `boolean`   | `true`    | Render attached images (with alt text), videos and audio               |
+| `tags`          | `boolean`   | `false`   | Render a hashtag list linking to the instance's tag pages              |
+| `labels`        | `Labels`    | English   | Override the built-in texts (see below)                                |
+| `locale`        | `string`    | –         | BCP 47 locale for dates, e.g. `tr-TR`                                  |
+| `timeZone`      | `string`    | –         | IANA time zone for dates, e.g. `Europe/Istanbul`                       |
+| `header`        | `boolean`   | `false`   | Render the feed's avatar, title and description                        |
+| `onlyWithMedia` | `boolean`   | `false`   | Only show posts with attachments (Mastodon only)                       |
+| `tag`           | `string`    | –         | Only show posts with this hashtag, `astro` or `#astro` (Mastodon only) |
+| `replies`       | `boolean`   | `false`   | Include replies (Mastodon account sources only; ignored with `tag`)    |
+| `sanitize`      | `boolean`   | `true`    | Strip unsafe markup from post content (see Security)                   |
+| `cacheTtl`      | `number`    | `0`       | Cache the parsed feed in memory for this many seconds                  |
+| `retries`       | `number`    | `0`       | Retry network errors, 5xx and 429 this many times                      |
+| `timeout`       | `number`    | `10000`   | Request timeout in milliseconds                                        |
+| `onError`       | `function`  | –         | `(error, url) => void`, replaces the default `console.warn`            |
 
 > `seperator` (the old, misspelled name) still works but is deprecated.
 
@@ -57,7 +59,7 @@ For example css file:
 ```
 
 The account can be given in three ways. If more than one is set, `url` wins, then
-`account`, then `instance` + `username`:
+`account`, then `channel`, then `instance` + `username`:
 
 ```html
 <Asmarss account="@username@mastodon.instance" />
@@ -103,6 +105,8 @@ type ClassList = {
   toot__author__name?: string; // the class of the author name
   toot__header?: string; // the class of the toot header
   toot__header__date?: string; // the class of the toot date
+  toot__title?: string; // the class of the post title (PeerTube)
+  toot__thumbnail?: string; // the class of the video thumbnail (PeerTube)
   toot__content?: string; // the class of the toot content
   toot__media?: string; // the class of the media wrapper
   toot__media__item?: string; // the class of each img/video/audio
@@ -134,6 +138,8 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
   labels={{
     seeMore: "Devamı",
     viewOnMastodon: "Mastodon'da gör",
+    viewOnPixelfed: "Pixelfed'de gör",
+    viewOnPeerTube: "PeerTube'da izle",
     errorLoadingFeed: "Akış yüklenemedi",
     noItemsInFeed: "Gönderi yok",
     sensitiveContent: "Hassas içerik",
@@ -143,6 +149,33 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
 ```ts
 import type { Labels } from "asmarss/types";
 ```
+
+## Pixelfed and PeerTube
+
+Set `platform` to build the right feed address from `account` or
+`instance` + `username`. With `url` the platform is guessed from the address
+(`/users/<user>.atom` is Pixelfed, `/feeds/videos.xml` is PeerTube, anything else
+Mastodon), and `platform` overrides the guess. `channel` is PeerTube only.
+
+```html
+<Asmarss platform="pixelfed" account="@user@pixelfed.social" tags />
+<Asmarss platform="peertube" account="@blender@video.blender.org" />
+<Asmarss channel="@blender_studio@video.blender.org" />
+<Asmarss
+  url="https://video.blender.org/feeds/videos.xml?videoChannelName=blender_studio"
+/>
+```
+
+- **Pixelfed** (`/users/<user>.atom`): the images are rendered from the feed's
+  media, so the copies Pixelfed puts at the top of the caption are removed, and
+  hashtags are read from the caption and link to `/discover/tags/<tag>`.
+- **PeerTube** (`/feeds/videos.xml?accountName=…` or `?videoChannelName=…`): each
+  video shows its title and thumbnail linking to the video page, followed by the
+  description. Video files aren't embedded (`media={false}` hides the thumbnail).
+  PeerTube's categories aren't hashtags, so `tags` renders nothing.
+
+`onlyWithMedia`, `tag` and `replies` only exist for Mastodon. On other platforms
+they are ignored and reported through `onError` (or `console.warn`).
 
 ## Filtering
 
@@ -183,7 +216,9 @@ cached copy. If a refresh fails, the stale copy is served instead of an error.
 
 Failures are logged with `console.warn("[asmarss] Failed to load <url>: …")`;
 pass `onError` to handle them yourself (the component still renders the error
-message, unless a stale cached copy exists).
+message, unless a stale cached copy exists). Configuration warnings, such as a
+Mastodon-only option on Pixelfed, are logged as `[asmarss] <message>` or passed
+to `onError` the same way.
 
 ## Headless usage
 
@@ -212,19 +247,24 @@ const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 )}
 ```
 
-`items` is `null` when the request fails or the feed is invalid. Each entry has
-`link`, `pubDate`, `content` (HTML), `media` and `tags`. `parseFeed` accepts
+`items` is `null` when the request fails or the feed is invalid. Both RSS and Atom
+are parsed. Each entry has `link`, `pubDate`, `content` (HTML), `media` and `tags`,
+plus `title` and `thumbnail` when the feed has them. `parseFeed` accepts
 `{ timeoutMs, cacheTtlMs, retries, retryDelayMs, onError }` as a second argument.
 `parseFeeds([url1, url2], options)` merges feeds the same way as the component
 (`{ items, feeds }`, each item has a `source`), and `filterItems(items, { onlyWithMedia, tag })`
 applies the filters. `ParsedFeed` also has `title`, `description` and `image`.
 `mastodonFeedUrl("@user@instance", { tag, onlyMedia, replies })` (or `mastodonFeedUrl("instance", "user")`) builds the
-RSS address and returns `null` for invalid input. `clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
+RSS address and returns `null` for invalid input; `pixelfedFeedUrl("@user@instance")` and
+`peertubeFeedUrl("@name@instance", { channel })` do the same for the other platforms.
+`detectPlatform(url)` guesses the platform of a feed address, and
+`normalizeEntry(item, platform)` applies the Pixelfed / PeerTube clean-up the
+component does. `clearFeedCache()` empties the cache, and `sanitizeContent(html)` is the same
 sanitizer the component uses: apply it before `set:html` when rendering `item.content` yourself.
 
 ## Requirements
 
-`astro` >= 4 is a peer dependency and Node.js >= 22 is required. The feed is fetched on the server at build/render time using the built-in `fetch` (10 second timeout).
+`astro` >= 6 is a peer dependency and Node.js >= 24 is required. The feed is fetched on the server at build/render time using the built-in `fetch` (10 second timeout).
 
 ## Security
 

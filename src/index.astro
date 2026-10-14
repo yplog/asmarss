@@ -3,17 +3,34 @@ import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
 import FeedHeader from "./components/FeedHeader.astro";
-import { parseFeed, parseFeeds, reportError } from "./lib/parseFeed";
-import { filterItems } from "./lib/filter";
-import { mastodonFeedUrl } from "./lib/feedUrl";
+import {
+  parseFeed,
+  parseFeeds,
+  reportError,
+  reportWarning,
+} from "./lib/parseFeed";
+import { matchesFilter } from "./lib/filter";
+import {
+  mastodonFeedUrl,
+  peertubeFeedUrl,
+  pixelfedFeedUrl,
+} from "./lib/feedUrl";
 import { defaultLabels } from "./lib/labels";
+import {
+  detectPlatform,
+  mastodonOnlyOptions,
+  normalizeEntry,
+  platforms,
+  type Platform,
+} from "./lib/platforms";
 import type { ClassList, Labels, ParsedFeed } from "./types";
 
 type Source =
   | {
-      /** RSS URL of the Mastodon account, e.g. `https://mastodon.social/@user.rss`. Pass an array to merge several feeds. */
+      /** RSS or Atom URL, e.g. `https://mastodon.social/@user.rss`. Pass an array to merge several feeds. */
       url: string | string[];
       account?: never;
+      channel?: never;
       instance?: never;
       username?: never;
     }
@@ -21,6 +38,15 @@ type Source =
       /** Full account name, e.g. `@user@mastodon.social`. Pass an array to merge several accounts. */
       account: string | string[];
       url?: never;
+      channel?: never;
+      instance?: never;
+      username?: never;
+    }
+  | {
+      /** PeerTube video channel, e.g. `@blender_studio@video.blender.org`. Implies `platform="peertube"`. */
+      channel: string | string[];
+      url?: never;
+      account?: never;
       instance?: never;
       username?: never;
     }
@@ -31,9 +57,12 @@ type Source =
       username: string;
       url?: never;
       account?: never;
+      channel?: never;
     };
 
 interface Options {
+  /** Where the account lives. Defaults to `"mastodon"`, or is guessed from `url`. */
+  platform?: Platform;
   classList?: ClassList;
   limit?: number;
   separator?: boolean;
@@ -74,8 +103,10 @@ type Props = Source & Options;
 const {
   url: urlProp,
   account,
+  channel,
   instance,
   username,
+  platform,
   classList = {},
   limit,
   separator,
@@ -101,31 +132,88 @@ const l = { ...defaultLabels, ...labels };
 const toList = (value: string | string[] | undefined) =>
   value === undefined ? [] : Array.isArray(value) ? value : [value];
 
-// url > account > instance + username
+let platformProp = platform;
+if (platformProp !== undefined && !platforms.includes(platformProp)) {
+  reportWarning(`Unknown platform "${platformProp}"`, "", onError);
+  platformProp = undefined;
+}
+if (channel !== undefined && platformProp && platformProp !== "peertube") {
+  reportWarning(
+    "`channel` only works with PeerTube; using PeerTube",
+    "",
+    onError,
+  );
+}
+const handlePlatform: Platform =
+  channel !== undefined ? "peertube" : (platformProp ?? "mastodon");
+
 const feedUrlOptions = { tag, onlyMedia: onlyWithMedia, replies };
-const sources =
+const peertubeOptions = { channel: channel !== undefined };
+function buildUrl(first: string, second?: string): string | null {
+  switch (handlePlatform) {
+    case "pixelfed":
+      return pixelfedFeedUrl(first, second);
+    case "peertube":
+      return second === undefined
+        ? peertubeFeedUrl(first, peertubeOptions)
+        : peertubeFeedUrl(first, second, peertubeOptions);
+    default:
+      return second === undefined
+        ? mastodonFeedUrl(first, feedUrlOptions)
+        : mastodonFeedUrl(first, second, feedUrlOptions);
+  }
+}
+
+// url > account > channel > instance + username
+type ResolvedSource = {
+  given: string;
+  url: string | null;
+  platform: Platform;
+};
+const handles = account ?? channel;
+const sources: ResolvedSource[] =
   urlProp !== undefined
-    ? toList(urlProp).map((u) => [u, u || null] as const)
-    : account !== undefined
-      ? toList(account).map(
-          (a) => [a, mastodonFeedUrl(a, feedUrlOptions)] as const,
-        )
+    ? toList(urlProp).map((u) => ({
+        given: u,
+        url: u || null,
+        platform: platformProp ?? detectPlatform(u),
+      }))
+    : handles !== undefined
+      ? toList(handles).map((h) => ({
+          given: h,
+          url: buildUrl(h),
+          platform: handlePlatform,
+        }))
       : instance !== undefined && username !== undefined
         ? [
-            [
-              `${instance} ${username}`,
-              mastodonFeedUrl(instance, username, feedUrlOptions),
-            ] as const,
+            {
+              given: `${instance} ${username}`,
+              url: buildUrl(instance, username),
+              platform: handlePlatform,
+            },
           ]
         : [];
 
+const usedMastodonOnly = mastodonOnlyOptions.filter(
+  (name) => ({ tag, replies, onlyWithMedia })[name],
+);
 const urls: string[] = [];
-for (const [given, resolved] of sources) {
-  if (resolved) urls.push(resolved);
-  else {
+const platformByUrl = new Map<string, Platform>();
+for (const source of sources) {
+  if (!source.url) {
     reportError(
       new Error("Invalid or missing feed source"),
-      given.trim(),
+      source.given.trim(),
+      onError,
+    );
+    continue;
+  }
+  urls.push(source.url);
+  platformByUrl.set(source.url, source.platform);
+  if (source.platform !== "mastodon" && usedMastodonOnly.length > 0) {
+    reportWarning(
+      `Ignoring Mastodon-only options on ${source.platform}: ${usedMastodonOnly.join(", ")}`,
+      source.url,
       onError,
     );
   }
@@ -155,7 +243,23 @@ if (merged) {
   feeds = feed.items ? [feed] : [];
 }
 
-const filtered = items && filterItems(items, { onlyWithMedia, tag });
+const platformOf = (source?: { url: string }): Platform =>
+  platformByUrl.get(source?.url ?? urls[0]) ?? "mastodon";
+const filtered =
+  items &&
+  items
+    .map((item) => {
+      const itemPlatform = platformOf(item.source);
+      return {
+        item: normalizeEntry(item, itemPlatform),
+        platform: itemPlatform,
+      };
+    })
+    .filter(
+      ({ item, platform: itemPlatform }) =>
+        itemPlatform !== "mastodon" ||
+        matchesFilter(item, { onlyWithMedia, tag }),
+    );
 const maxItems =
   limit !== undefined && !Number.isNaN(limit)
     ? Math.max(0, Math.floor(limit))
@@ -174,12 +278,15 @@ const visibleItems =
     <NoItemsInFeed label={l.noItemsInFeed} classList={classList} />
   ) : (
     <ul class={classList.feed__list}>
-      {visibleItems.map((item) => (
+      {visibleItems.map(({ item, platform: itemPlatform }) => (
         <li class={classList.feed__item}>
           <FeedItem
             link={item.link}
             pubDate={item.pubDate}
             content={item.content}
+            title={item.title}
+            thumbnail={media ? item.thumbnail : undefined}
+            platform={itemPlatform}
             labels={l}
             media={media ? item.media : []}
             tags={tags ? item.tags : []}
