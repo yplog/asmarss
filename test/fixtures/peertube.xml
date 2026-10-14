@@ -45,6 +45,7 @@
             <guid>https://tube.example/w/def456</guid>
             <pubDate>Thu, 02 Oct 2025 09:30:00 GMT</pubDate>
             <description><![CDATA[Short teaser]]></description>
+            <media:embed url="javascript:alert(1)"/>
             <media:thumbnail url="javascript:alert(1)"/>
         </item>
     </channel>

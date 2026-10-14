@@ -76,11 +76,10 @@ describe("FediFeed", () => {
     expect(html).not.toContain("First toot");
   });
 
-  it("renders separators with `separator` and the deprecated `seperator`", async () => {
+  it("renders separators with `separator`", async () => {
     mockFetch(feedXml);
     expect(await render()).not.toContain("<hr");
     expect(await render({ separator: true })).toContain("<hr");
-    expect(await render({ seperator: true })).toContain("<hr");
   });
 
   it("applies classList entries", async () => {
@@ -95,6 +94,27 @@ describe("FediFeed", () => {
     expect(html).toContain("<img");
     expect(html).toContain('alt="A cat on a keyboard"');
     expect(html).toContain("https://example.social/media/cat.jpg");
+  });
+
+  it("links attachments that are not images, video or audio", async () => {
+    mockFetch(`<?xml version="1.0"?>
+      <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel>
+        <title>x</title><link>https://example.social/@test</link>
+        <item>
+          <link>https://example.social/@test/9</link>
+          <pubDate>Fri, 03 Oct 2025 12:00:00 +0000</pubDate>
+          <description>&lt;p&gt;Doc&lt;/p&gt;</description>
+          <media:content url="https://example.social/media/a.pdf" type="application/pdf" medium="document">
+            <media:description>Slides</media:description>
+          </media:content>
+          <media:content url="https://example.social/media/b.bin" type="application/octet-stream"/>
+        </item>
+      </channel></rss>`);
+    const html = await render({ classList: { post__media__item: "mi" } });
+    expect(html).toMatch(
+      /<a class="mi" href="https:\/\/example.social\/media\/a.pdf" target="_blank" rel="noopener noreferrer"[^>]*>Slides<\/a>/,
+    );
+    expect(html).toContain(">https://example.social/media/b.bin</a>");
   });
 
   it("renders video with a poster and drops unsafe urls", async () => {
@@ -425,6 +445,71 @@ describe("FediFeed", () => {
         media: false,
       }),
     ).not.toContain("thumbnails/abc123.jpg");
+    // no player without `embed`
+    expect(html).not.toContain("<iframe");
+  });
+
+  describe("embed", () => {
+    const channel = "@test_channel@tube.example";
+
+    it("replaces the thumbnail with a sandboxed player", async () => {
+      mockFetch(fixture("peertube.xml"));
+      const html = await render({
+        url: undefined,
+        channel,
+        embed: true,
+        classList: { post__embed: "pe", post__thumbnail: "th" },
+      });
+      const iframe = html.match(/<iframe[^>]*>/)?.[0] ?? "";
+      expect(iframe).toContain('class="pe"');
+      expect(iframe).toContain(
+        'src="https://tube.example/videos/embed/abc123"',
+      );
+      expect(iframe).toContain('title="Making of: the first video"');
+      expect(iframe).toContain(
+        'sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"',
+      );
+      expect(iframe).toContain('loading="lazy"');
+      expect(html.match(/<iframe/g)).toHaveLength(1);
+      expect(html).not.toContain("thumbnails/abc123.jpg");
+      // the teaser's javascript: player is dropped while parsing
+      expect(html).not.toContain("javascript:");
+    });
+
+    it("is hidden with media={false}", async () => {
+      mockFetch(fixture("peertube.xml"));
+      const html = await render({
+        url: undefined,
+        channel,
+        embed: true,
+        media: false,
+      });
+      expect(html).not.toContain("<iframe");
+      expect(html).not.toContain("thumbnails/abc123.jpg");
+    });
+
+    it("keeps the thumbnail for players on another origin or over http", async () => {
+      const video = (player: string) => `<?xml version="1.0"?>
+        <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel>
+          <title>T</title><link>https://tube.example/c/t/videos</link>
+          <item>
+            <title>V</title><link>https://tube.example/w/x</link>
+            <pubDate>Wed, 01 Oct 2025 12:00:00 GMT</pubDate><description>d</description>
+            <media:embed url="${player}"/>
+            <media:thumbnail url="https://tube.example/t.jpg"/>
+          </item>
+        </channel></rss>`;
+      for (const player of [
+        "https://evil.example/videos/embed/x",
+        "http://tube.example/videos/embed/x",
+      ]) {
+        mockFetch(video(player));
+        clearFeedCache();
+        const html = await render({ url: undefined, channel, embed: true });
+        expect(html).not.toContain("<iframe");
+        expect(html).toContain('src="https://tube.example/t.jpg"');
+      }
+    });
   });
 
   it("builds Pixelfed and PeerTube addresses from `platform`", async () => {
@@ -497,24 +582,5 @@ describe("FediFeed", () => {
     expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
       "https://tube.example/feeds/videos.xml?videoChannelName=c",
     );
-  });
-
-  it("maps deprecated toot classList keys to post and warns once", async () => {
-    mockFetch(feedXml);
-    const html = await render({
-      classList: { toot: "old", toot__content: "c", post__content: "new" },
-    });
-    expect(html).toMatch(/<article[^>]*class="old"/);
-    expect(html).toContain('class="new"');
-    expect(html).not.toContain('class="c"');
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'classList keys starting with "toot" are deprecated',
-      ),
-    );
-
-    vi.mocked(console.warn).mockClear();
-    await render({ classList: { toot: "old" } });
-    expect(console.warn).not.toHaveBeenCalled();
   });
 });

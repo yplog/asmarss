@@ -1,4 +1,5 @@
 ---
+import ExternalLink from "./ExternalLink.astro";
 import type { ClassList, ParsedFeed } from "../types";
 
 interface Props {
@@ -20,19 +21,11 @@ const { feeds, classList = {} } = Astro.props;
       />
     )}
     <div>
-      {feed.title &&
-        (feed.link ? (
-          <a
-            class={classList.feed__title}
-            href={feed.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {feed.title}
-          </a>
-        ) : (
-          <span class={classList.feed__title}>{feed.title}</span>
-        ))}
+      {feed.title && (
+        <ExternalLink class={classList.feed__title} href={feed.link}>
+          {feed.title}
+        </ExternalLink>
+      )}
       {feed.description && (
         <p class={classList.feed__description}>{feed.description}</p>
       )}

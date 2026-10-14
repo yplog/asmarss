@@ -1,5 +1,7 @@
 ---
+import ExternalLink from "./ExternalLink.astro";
 import FeedMedia from "./FeedMedia.astro";
+import FeedPreview from "./FeedPreview.astro";
 import { formatDate } from "../lib/formatDate";
 import { sanitizeContent } from "../lib/sanitize";
 import { tagUrl, viewLabels, type Platform } from "../lib/platforms";
@@ -18,6 +20,8 @@ interface Props {
   title?: string;
   /** Preview image linking to the post, e.g. a PeerTube video thumbnail. */
   thumbnail?: string;
+  /** Player URL; replaces the thumbnail with an iframe when it is on the post's origin. */
+  embed?: string;
   platform?: Platform;
   labels: Required<Labels>;
   media?: FeedMediaType[];
@@ -37,6 +41,7 @@ const {
   link,
   title,
   thumbnail,
+  embed,
   platform = "mastodon",
   labels,
   media = [],
@@ -46,7 +51,7 @@ const {
   timeZone,
   sanitize = true,
   author,
-  classList,
+  classList = {},
 } = Astro.props;
 
 const tagHref = (tag: string) => tagUrl(platform, tag, instanceUrl ?? link);
@@ -57,70 +62,46 @@ const hasDate = !Number.isNaN(date.getTime());
 const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
 ---
 
-<article class={classList?.post}>
+<article class={classList.post}>
   {author && (author.title || author.image) && (
-    <div class={classList?.post__author}>
+    <div class={classList.post__author}>
       {author.image && (
         <img
-          class={classList?.post__author__avatar}
+          class={classList.post__author__avatar}
           src={author.image}
           alt=""
           loading="lazy"
         />
       )}
-      {author.title &&
-        (author.link ? (
-          <a
-            class={classList?.post__author__name}
-            href={author.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {author.title}
-          </a>
-        ) : (
-          <span class={classList?.post__author__name}>{author.title}</span>
-        ))}
+      {author.title && (
+        <ExternalLink class={classList.post__author__name} href={author.link}>
+          {author.title}
+        </ExternalLink>
+      )}
     </div>
   )}
   {hasDate && (
-    <header class={classList?.post__header}>
-      <div class={classList?.post__header__date}>
+    <header class={classList.post__header}>
+      <div class={classList.post__header__date}>
         <time datetime={date.toISOString()}>{dateString}</time>
       </div>
     </header>
   )}
   {title && (
-    <div class={classList?.post__title}>
-      {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer">
-          {title}
-        </a>
-      ) : (
-        title
-      )}
+    <div class={classList.post__title}>
+      {link ? <ExternalLink href={link}>{title}</ExternalLink> : title}
     </div>
   )}
-  {thumbnail &&
-    (link ? (
-      <a href={link} target="_blank" rel="noopener noreferrer">
-        <img
-          class={classList?.post__thumbnail}
-          src={thumbnail}
-          alt={title ?? viewLabel}
-          loading="lazy"
-        />
-      </a>
-    ) : (
-      <img
-        class={classList?.post__thumbnail}
-        src={thumbnail}
-        alt={title ?? ""}
-        loading="lazy"
-      />
-    ))}
+  <FeedPreview
+    link={link}
+    title={title}
+    thumbnail={thumbnail}
+    embed={embed}
+    label={viewLabel}
+    classList={classList}
+  />
   <div
-    class={classList?.post__content}
+    class={classList.post__content}
     set:html={sanitize ? sanitizeContent(content) : content}
   />
   {media.length > 0 && (
@@ -131,26 +112,19 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     />
   )}
   {tags.length > 0 && (
-    <ul class={classList?.post__tags}>
+    <ul class={classList.post__tags}>
       {tags.map((tag) => (
-        <li class={classList?.post__tag}>
-          <a href={tagHref(tag)} target="_blank" rel="noopener noreferrer">
-            #{tag}
-          </a>
+        <li class={classList.post__tag}>
+          <ExternalLink href={tagHref(tag)}>#{tag}</ExternalLink>
         </li>
       ))}
     </ul>
   )}
   {link && (
-    <footer class={classList?.post__footer}>
-      <a
-        class={classList?.post__footer__link}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+    <footer class={classList.post__footer}>
+      <ExternalLink class={classList.post__footer__link} href={link}>
         {viewLabel}
-      </a>
+      </ExternalLink>
     </footer>
   )}
 </article>

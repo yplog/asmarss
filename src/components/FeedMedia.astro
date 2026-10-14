@@ -1,4 +1,5 @@
 ---
+import ExternalLink from "./ExternalLink.astro";
 import type { ClassList, FeedMedia } from "../types";
 
 interface Props {
@@ -36,14 +37,9 @@ const { media, sensitiveLabel, classList = {} } = Astro.props;
           preload="none"
         />
       ) : (
-        <a
-          class={classList.post__media__item}
-          href={m.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <ExternalLink class={classList.post__media__item} href={m.url}>
           {m.description || m.url}
-        </a>
+        </ExternalLink>
       );
 
     return m.sensitive ? (

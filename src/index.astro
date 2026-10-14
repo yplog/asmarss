@@ -1,29 +1,13 @@
 ---
 import FeedItem from "./components/FeedItem.astro";
-import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
-import NoItemsInFeed from "./components/NoItemsInFeed.astro";
+import FeedMessage from "./components/FeedMessage.astro";
 import FeedHeader from "./components/FeedHeader.astro";
-import {
-  parseFeed,
-  parseFeeds,
-  reportError,
-  reportWarning,
-} from "./lib/parseFeed";
+import ExternalLink from "./components/ExternalLink.astro";
+import { parseFeed, parseFeeds } from "./lib/parseFeed";
 import { matchesFilter } from "./lib/filter";
-import {
-  mastodonFeedUrl,
-  peertubeFeedUrl,
-  pixelfedFeedUrl,
-} from "./lib/feedUrl";
-import { resolveClassList } from "./lib/classList";
+import { resolveSources } from "./lib/sources";
 import { defaultLabels } from "./lib/labels";
-import {
-  detectPlatform,
-  mastodonOnlyOptions,
-  normalizeEntry,
-  platforms,
-  type Platform,
-} from "./lib/platforms";
+import { normalizeEntry, type Platform } from "./lib/platforms";
 import type { ClassList, Labels, ParsedFeed } from "./types";
 
 type Source =
@@ -67,10 +51,10 @@ interface Options {
   classList?: ClassList;
   limit?: number;
   separator?: boolean;
-  /** @deprecated Misspelled, use `separator` instead. */
-  seperator?: boolean;
   /** Render attached images, videos and audio. Defaults to `true`. */
   media?: boolean;
+  /** Play videos in the page through the feed's player (PeerTube). Defaults to `false`. */
+  embed?: boolean;
   /** Render a hashtag list for each post. Defaults to `false`. */
   tags?: boolean;
   /** Override the built-in (English) texts. */
@@ -102,17 +86,17 @@ interface Options {
 type Props = Source & Options;
 
 const {
-  url: urlProp,
+  url,
   account,
   channel,
   instance,
   username,
   platform,
-  classList: classListProp = {},
+  classList = {},
   limit,
-  separator,
-  seperator,
+  separator = false,
   media = true,
+  embed = false,
   tags = false,
   labels,
   locale,
@@ -127,102 +111,26 @@ const {
   timeout,
   onError,
 }: Props = Astro.props;
-const classList = resolveClassList(classListProp);
-const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 
-const toList = (value: string | string[] | undefined) =>
-  value === undefined ? [] : Array.isArray(value) ? value : [value];
-
-let platformProp = platform;
-if (platformProp !== undefined && !platforms.includes(platformProp)) {
-  reportWarning(`Unknown platform "${platformProp}"`, "", onError);
-  platformProp = undefined;
-}
-if (channel !== undefined && platformProp && platformProp !== "peertube") {
-  reportWarning(
-    "`channel` only works with PeerTube; using PeerTube",
-    "",
-    onError,
-  );
-}
-const handlePlatform: Platform =
-  channel !== undefined ? "peertube" : (platformProp ?? "mastodon");
-
-const feedUrlOptions = { tag, onlyMedia: onlyWithMedia, replies };
-const peertubeOptions = { channel: channel !== undefined };
-function buildUrl(first: string, second?: string): string | null {
-  switch (handlePlatform) {
-    case "pixelfed":
-      return pixelfedFeedUrl(first, second);
-    case "peertube":
-      return second === undefined
-        ? peertubeFeedUrl(first, peertubeOptions)
-        : peertubeFeedUrl(first, second, peertubeOptions);
-    default:
-      return second === undefined
-        ? mastodonFeedUrl(first, feedUrlOptions)
-        : mastodonFeedUrl(first, second, feedUrlOptions);
-  }
-}
-
-// url > account > channel > instance + username
-type ResolvedSource = {
-  given: string;
-  url: string | null;
-  platform: Platform;
-};
-const handles = account ?? channel;
-const sources: ResolvedSource[] =
-  urlProp !== undefined
-    ? toList(urlProp).map((u) => ({
-        given: u,
-        url: u || null,
-        platform: platformProp ?? detectPlatform(u),
-      }))
-    : handles !== undefined
-      ? toList(handles).map((h) => ({
-          given: h,
-          url: buildUrl(h),
-          platform: handlePlatform,
-        }))
-      : instance !== undefined && username !== undefined
-        ? [
-            {
-              given: `${instance} ${username}`,
-              url: buildUrl(instance, username),
-              platform: handlePlatform,
-            },
-          ]
-        : [];
-
-const usedMastodonOnly = mastodonOnlyOptions.filter(
-  (name) => ({ tag, replies, onlyWithMedia })[name],
+const sources = resolveSources(
+  {
+    url,
+    account,
+    channel,
+    instance,
+    username,
+    platform,
+    tag,
+    replies,
+    onlyWithMedia,
+  },
+  onError,
 );
-const urls: string[] = [];
-const platformByUrl = new Map<string, Platform>();
-for (const source of sources) {
-  if (!source.url) {
-    reportError(
-      new Error("Invalid or missing feed source"),
-      source.given.trim(),
-      onError,
-    );
-    continue;
-  }
-  urls.push(source.url);
-  platformByUrl.set(source.url, source.platform);
-  if (source.platform !== "mastodon" && usedMastodonOnly.length > 0) {
-    reportWarning(
-      `Ignoring Mastodon-only options on ${source.platform}: ${usedMastodonOnly.join(", ")}`,
-      source.url,
-      onError,
-    );
-  }
-}
-if (sources.length === 0) {
-  reportError(new Error("Invalid or missing feed source"), "", onError);
-}
+const urls = sources.map((source) => source.url);
+const platformByUrl = new Map(
+  sources.map((source) => [source.url, source.platform]),
+);
 
 const feedOptions = {
   timeoutMs: timeout,
@@ -275,9 +183,12 @@ const visibleItems =
     <FeedHeader feeds={feeds} classList={classList} />
   )}
   {!visibleItems ? (
-    <ErrorLoadingFeed label={l.errorLoadingFeed} classList={classList} />
+    <FeedMessage
+      label={l.errorLoadingFeed}
+      class={classList.error_loading_feed}
+    />
   ) : visibleItems.length === 0 ? (
-    <NoItemsInFeed label={l.noItemsInFeed} classList={classList} />
+    <FeedMessage label={l.noItemsInFeed} class={classList.no_items_in_feed} />
   ) : (
     <ul class={classList.feed__list}>
       {visibleItems.map(({ item, platform: itemPlatform }) => (
@@ -288,6 +199,7 @@ const visibleItems =
             content={item.content}
             title={item.title}
             thumbnail={media ? item.thumbnail : undefined}
+            embed={media && embed ? item.embed : undefined}
             platform={itemPlatform}
             labels={l}
             media={media ? item.media : []}
@@ -299,19 +211,14 @@ const visibleItems =
             sanitize={sanitize}
             classList={classList}
           />
-          {showSeparator && <hr class={classList.separator} />}
+          {separator && <hr class={classList.separator} />}
         </li>
       ))}
     </ul>
   )}
   {link && (
-    <a
-      class={classList.see_more}
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <ExternalLink class={classList.see_more} href={link}>
       {l.seeMore}
-    </a>
+    </ExternalLink>
   )}
 </section>
