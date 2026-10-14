@@ -1,6 +1,7 @@
 ---
 import ExternalLink from "./ExternalLink.astro";
 import FeedMedia from "./FeedMedia.astro";
+import FeedPreview from "./FeedPreview.astro";
 import { formatDate } from "../lib/formatDate";
 import { sanitizeContent } from "../lib/sanitize";
 import { tagUrl, viewLabels, type Platform } from "../lib/platforms";
@@ -56,19 +57,6 @@ const {
 const tagHref = (tag: string) => tagUrl(platform, tag, instanceUrl ?? link);
 const viewLabel = labels[viewLabels[platform]];
 
-// Only https players on the post's own instance are framed.
-const embedSrc = (() => {
-  if (!embed || !link) return undefined;
-  try {
-    const src = new URL(embed);
-    return src.protocol === "https:" && src.origin === new URL(link).origin
-      ? embed
-      : undefined;
-  } catch {
-    return undefined;
-  }
-})();
-
 const date = new Date(pubDate);
 const hasDate = !Number.isNaN(date.getTime());
 const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
@@ -104,39 +92,14 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       {link ? <ExternalLink href={link}>{title}</ExternalLink> : title}
     </div>
   )}
-  {embedSrc ? (
-    <iframe
-      class={classList?.post__embed}
-      src={embedSrc}
-      title={title ?? viewLabel}
-      width="560"
-      height="315"
-      loading="lazy"
-      allowfullscreen
-      allow="fullscreen; picture-in-picture"
-      sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-      referrerpolicy="strict-origin-when-cross-origin"
-    />
-  ) : (
-    thumbnail &&
-    (link ? (
-      <ExternalLink href={link}>
-        <img
-          class={classList?.post__thumbnail}
-          src={thumbnail}
-          alt={title ?? viewLabel}
-          loading="lazy"
-        />
-      </ExternalLink>
-    ) : (
-      <img
-        class={classList?.post__thumbnail}
-        src={thumbnail}
-        alt={title ?? ""}
-        loading="lazy"
-      />
-    ))
-  )}
+  <FeedPreview
+    link={link}
+    title={title}
+    thumbnail={thumbnail}
+    embed={embed}
+    label={viewLabel}
+    classList={classList}
+  />
   <div
     class={classList?.post__content}
     set:html={sanitize ? sanitizeContent(content) : content}

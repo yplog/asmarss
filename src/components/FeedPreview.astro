@@ -1,0 +1,58 @@
+---
+import ExternalLink from "./ExternalLink.astro";
+import { isSameOriginHttps } from "../lib/url";
+import type { ClassList } from "../types";
+
+interface Props {
+  /** The post page; the thumbnail links here. */
+  link: string;
+  title?: string;
+  thumbnail?: string;
+  /** Player URL; replaces the thumbnail when it is on the post's origin. */
+  embed?: string;
+  /** Names the player and the linked thumbnail when there is no title. */
+  label: string;
+  classList?: ClassList;
+}
+
+const { link, title, thumbnail, embed, label, classList = {} } = Astro.props;
+
+// Only https players on the post's own instance are framed.
+const embedSrc =
+  embed && link && isSameOriginHttps(embed, link) ? embed : undefined;
+const alt = title ?? (link ? label : "");
+---
+
+{embedSrc ? (
+  <iframe
+    class={classList.post__embed}
+    src={embedSrc}
+    title={title ?? label}
+    width="560"
+    height="315"
+    loading="lazy"
+    allowfullscreen
+    allow="fullscreen; picture-in-picture"
+    sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+    referrerpolicy="strict-origin-when-cross-origin"
+  />
+) : (
+  thumbnail &&
+  (link ? (
+    <ExternalLink href={link}>
+      <img
+        class={classList.post__thumbnail}
+        src={thumbnail}
+        alt={alt}
+        loading="lazy"
+      />
+    </ExternalLink>
+  ) : (
+    <img
+      class={classList.post__thumbnail}
+      src={thumbnail}
+      alt={alt}
+      loading="lazy"
+    />
+  ))
+)}
