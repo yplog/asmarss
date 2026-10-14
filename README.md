@@ -1,6 +1,7 @@
 # astro-fedifeed
 
 [![npm version](https://img.shields.io/npm/v/astro-fedifeed)](https://www.npmjs.com/package/astro-fedifeed)
+[![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyplog%2Fastro-fedifeed%2Fbadges%2Fcoverage.json)](https://github.com/yplog/astro-fedifeed/actions/workflows/ci.yml)
 
 An Astro component that renders the latest posts of a fediverse account from its
 public RSS / Atom feed: Mastodon and Pixelfed accounts, and PeerTube accounts and

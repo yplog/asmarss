@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,5 +31,42 @@ jobs:
       - run: npm run check
       - if: matrix.astro == 'locked'
         run: npm run test:coverage
+      - if: matrix.astro == 'locked' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage/coverage-summary.json
       - if: matrix.astro != 'locked'
         run: npm test
+
+  # Publishes coverage/coverage-summary.json as a shields.io endpoint JSON on the
+  # orphan `badges` branch; the README badge reads it from there.
+  coverage-badge:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-summary
+      - name: Write badge JSON
+        run: |
+          mkdir badges
+          node -e '
+            const pct = require("./coverage-summary.json").total.lines.pct;
+            const color = pct >= 90 ? "brightgreen" : pct >= 80 ? "green" : pct >= 70 ? "yellow" : pct >= 60 ? "orange" : "red";
+            const badge = { schemaVersion: 1, label: "coverage", message: `${pct}%`, color };
+            require("fs").writeFileSync("badges/coverage.json", JSON.stringify(badge) + "\n");
+          '
+          cat badges/coverage.json
+      - name: Push to the badges branch
+        working-directory: badges
+        run: |
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage.json
+          git commit -q -m "coverage badge for ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" badges
