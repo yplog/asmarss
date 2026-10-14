@@ -1,6 +1,5 @@
 import { mastodonFeedUrl, peertubeFeedUrl, pixelfedFeedUrl } from "./feedUrl";
-import { reportError, reportWarning } from "./parseFeed";
-import type { ParseFeedOptions } from "./parseFeed";
+import { reportError, reportWarning, type ErrorHandler } from "./report";
 import {
   detectPlatform,
   mastodonOnlyOptions,
@@ -43,7 +42,7 @@ export function resolveSources(
     replies = false,
     onlyWithMedia = false,
   }: SourceOptions,
-  onError?: ParseFeedOptions["onError"],
+  onError?: ErrorHandler,
 ): ResolvedSource[] {
   let platformProp = platform;
   if (platformProp !== undefined && !platforms.includes(platformProp)) {
