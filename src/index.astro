@@ -15,6 +15,7 @@ import {
   peertubeFeedUrl,
   pixelfedFeedUrl,
 } from "./lib/feedUrl";
+import { resolveClassList } from "./lib/classList";
 import { defaultLabels } from "./lib/labels";
 import {
   detectPlatform,
@@ -107,7 +108,7 @@ const {
   instance,
   username,
   platform,
-  classList = {},
+  classList: classListProp = {},
   limit,
   separator,
   seperator,
@@ -126,6 +127,7 @@ const {
   timeout,
   onError,
 }: Props = Astro.props;
+const classList = resolveClassList(classListProp);
 const showSeparator = separator ?? seperator ?? false;
 const l = { ...defaultLabels, ...labels };
 

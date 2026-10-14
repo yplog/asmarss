@@ -1,19 +1,23 @@
-# asmarss
+# astro-fedifeed
 
-[![npm version](https://badge.fury.io/js/asmarss.svg)](https://badge.fury.io/js/asmarss)
+[![npm version](https://badge.fury.io/js/astro-fedifeed.svg)](https://badge.fury.io/js/astro-fedifeed)
 
-A package that enables tracking the most recent posts of a Mastodon account and rendering them as an RSS feed in a Astro Component. Pixelfed accounts and PeerTube accounts or channels work too (RSS / Atom only, no API calls).
+An Astro component that renders the latest posts of a fediverse account from its
+public RSS / Atom feed: Mastodon and Pixelfed accounts, and PeerTube accounts and
+channels. No API calls and no tokens.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/asmarss/tree/main/example)
+> Formerly `asmarss`. See [Migrating from asmarss](#migrating-from-asmarss).
 
-<img src="https://raw.githubusercontent.com/yplog/asmarss/main/.github/assets/demo.png" alt="asmarss rendering the latest posts of @Mastodon@mastodon.social" width="520">
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/astro-fedifeed/tree/main/example)
+
+<img src="https://raw.githubusercontent.com/yplog/astro-fedifeed/main/.github/assets/demo.png" alt="astro-fedifeed rendering the latest posts of @Mastodon@mastodon.social" width="520">
 
 ## Installation
 
 In your Astro project, run:
 
 ```bash
-npm i asmarss
+npm i astro-fedifeed
 ```
 
 ## Usage
@@ -62,24 +66,24 @@ The account can be given in three ways. If more than one is set, `url` wins, the
 `account`, then `channel`, then `instance` + `username`:
 
 ```html
-<Asmarss account="@username@mastodon.instance" />
-<Asmarss instance="mastodon.instance" username="username" />
-<Asmarss url="https://mastodon.instance/@username.rss" />
+<FediFeed account="@username@mastodon.instance" />
+<FediFeed instance="mastodon.instance" username="username" />
+<FediFeed url="https://mastodon.instance/@username.rss" />
 ```
 
 In your Astro file:
 
 ```html
 ---
-import Asmarss from 'asmarss';
+import FediFeed from 'astro-fedifeed';
 ---
 
-<Asmarss url={"https://mastodon-instance/@username.rss"} />
+<FediFeed url={"https://mastodon-instance/@username.rss"} />
 
-<Asmarss
+<FediFeed
   url={"https://mastodon.instance/@username.rss"}
   classList={{
-    toot__content: "global-text-color global-font-size",
+    post__content: "global-text-color global-font-size",
   }}
   separator={true} />
 ```
@@ -99,28 +103,28 @@ type ClassList = {
   feed__avatar?: string; // the class of the feed avatar
   feed__title?: string; // the class of the feed title
   feed__description?: string; // the class of the feed description
-  toot?: string; // the class of the toot
-  toot__author?: string; // the class of the author line (merged feeds)
-  toot__author__avatar?: string; // the class of the author avatar
-  toot__author__name?: string; // the class of the author name
-  toot__header?: string; // the class of the toot header
-  toot__header__date?: string; // the class of the toot date
-  toot__title?: string; // the class of the post title (PeerTube)
-  toot__thumbnail?: string; // the class of the video thumbnail (PeerTube)
-  toot__content?: string; // the class of the toot content
-  toot__media?: string; // the class of the media wrapper
-  toot__media__item?: string; // the class of each img/video/audio
-  toot__tags?: string; // the class of the hashtag list
-  toot__tag?: string; // the class of each hashtag item
-  toot__footer?: string; // the class of the toot footer
-  toot__footer__link?: string; // the class of the toot footer link
+  post?: string; // the class of each post (article)
+  post__author?: string; // the class of the author line (merged feeds)
+  post__author__avatar?: string; // the class of the author avatar
+  post__author__name?: string; // the class of the author name
+  post__header?: string; // the class of the post header
+  post__header__date?: string; // the class of the post date
+  post__title?: string; // the class of the post title (PeerTube)
+  post__thumbnail?: string; // the class of the video thumbnail (PeerTube)
+  post__content?: string; // the class of the post content
+  post__media?: string; // the class of the media wrapper
+  post__media__item?: string; // the class of each img/video/audio
+  post__tags?: string; // the class of the hashtag list
+  post__tag?: string; // the class of each hashtag item
+  post__footer?: string; // the class of the post footer
+  post__footer__link?: string; // the class of the post footer link
 };
 ```
 
 The type can be imported in TypeScript:
 
 ```ts
-import type { ClassList } from "asmarss/types";
+import type { ClassList } from "astro-fedifeed/types";
 ```
 
 Posts marked as sensitive on Mastodon have their media wrapped in a collapsed `<details>` element.
@@ -131,7 +135,7 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
 (without them the default `Sat Oct 04 2025 at 11:00 AM` format is kept):
 
 ```html
-<Asmarss
+<FediFeed
   url={"https://mastodon.instance/@username.rss"}
   locale="tr-TR"
   timeZone="Europe/Istanbul"
@@ -147,7 +151,7 @@ All texts can be overridden with `labels`; dates follow `locale` and `timeZone`
 ```
 
 ```ts
-import type { Labels } from "asmarss/types";
+import type { Labels } from "astro-fedifeed/types";
 ```
 
 ## Pixelfed and PeerTube
@@ -158,10 +162,10 @@ Set `platform` to build the right feed address from `account` or
 Mastodon), and `platform` overrides the guess. `channel` is PeerTube only.
 
 ```html
-<Asmarss platform="pixelfed" account="@user@pixelfed.social" tags />
-<Asmarss platform="peertube" account="@blender@video.blender.org" />
-<Asmarss channel="@blender_studio@video.blender.org" />
-<Asmarss
+<FediFeed platform="pixelfed" account="@user@pixelfed.social" tags />
+<FediFeed platform="peertube" account="@blender@video.blender.org" />
+<FediFeed channel="@blender_studio@video.blender.org" />
+<FediFeed
   url="https://video.blender.org/feeds/videos.xml?videoChannelName=blender_studio"
 />
 ```
@@ -184,8 +188,8 @@ nothing to exclude. `onlyWithMedia` and `tag` filter the posts, and `replies` ad
 replies back:
 
 ```html
-<Asmarss account="@username@mastodon.instance" tag="astro" onlyWithMedia />
-<Asmarss account="@username@mastodon.instance" replies />
+<FediFeed account="@username@mastodon.instance" tag="astro" onlyWithMedia />
+<FediFeed account="@username@mastodon.instance" replies />
 ```
 
 With `account` or `instance` + `username` the matching server feed is requested
@@ -202,7 +206,7 @@ the "See more" link is left out. Feeds that fail are skipped and reported throug
 `onError`:
 
 ```html
-<Asmarss
+<FediFeed
   account={["@a@mastodon.social", "@b@fosstodon.org"]}
   header
   limit={10} />
@@ -214,20 +218,20 @@ With `cacheTtl` the parsed feed is kept in memory per URL. Once it expires, the
 next request revalidates it with `ETag` / `Last-Modified`, and a `304` reuses the
 cached copy. If a refresh fails, the stale copy is served instead of an error.
 
-Failures are logged with `console.warn("[asmarss] Failed to load <url>: …")`;
+Failures are logged with `console.warn("[astro-fedifeed] Failed to load <url>: …")`;
 pass `onError` to handle them yourself (the component still renders the error
 message, unless a stale cached copy exists). Configuration warnings, such as a
-Mastodon-only option on Pixelfed, are logged as `[asmarss] <message>` or passed
+Mastodon-only option on Pixelfed, are logged as `[astro-fedifeed] <message>` or passed
 to `onError` the same way.
 
 ## Headless usage
 
-`asmarss/feed` exposes the parser, so you can render the posts yourself:
+`astro-fedifeed/feed` exposes the parser, so you can render the posts yourself:
 
 <!-- prettier-ignore -->
 ```astro
 ---
-import { parseFeed, formatDate } from "asmarss/feed";
+import { parseFeed, formatDate } from "astro-fedifeed/feed";
 
 const { items } = await parseFeed("https://mastodon.instance/@username.rss");
 ---
@@ -273,7 +277,8 @@ Post content is rendered as HTML (`set:html`) after being sanitized with [saniti
 ## Example
 
 [`example/`](example) is a small Astro project that renders live posts from
-mastodon.social: a single account with a header, a tag filter, and merged feeds.
+mastodon.social, pixelfed.social and video.blender.org: a single account with a
+header, a tag filter, merged feeds, a Pixelfed account and a PeerTube channel.
 Open it in StackBlitz with the badge above, or run it locally:
 
 ```bash
@@ -281,6 +286,18 @@ cd example
 npm install
 npm run dev
 ```
+
+## Migrating from asmarss
+
+1. Replace the package: `npm uninstall asmarss && npm i astro-fedifeed`.
+2. Update the imports: `asmarss` → `astro-fedifeed`, `asmarss/feed` →
+   `astro-fedifeed/feed`, `asmarss/types` → `astro-fedifeed/types`. The component
+   is the default export, so it can keep any local name.
+3. Rename the `classList` keys that start with `toot` to `post` (`toot__content`
+   → `post__content`). The old keys still work for now and log a one-time
+   deprecation warning.
+4. Log messages are prefixed with `[astro-fedifeed]` instead of `[asmarss]`.
+5. Node.js >= 24 and `astro` >= 6 are required.
 
 ## Contributing
 
@@ -300,4 +317,4 @@ This project is licensed under the MIT License. Please refer to the license file
 ## Dependencies
 
 - [sanitize-html](https://github.com/apostrophecms/sanitize-html) - Cleans post content before it is rendered.
-- [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) - A fast XML parser, used to read the RSS feed.
+- [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) - A fast XML parser, used to read the RSS and Atom feeds.

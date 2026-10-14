@@ -10,20 +10,50 @@ export type ClassList = {
   feed__avatar?: string;
   feed__title?: string;
   feed__description?: string;
+  post?: string;
+  post__author?: string;
+  post__author__avatar?: string;
+  post__author__name?: string;
+  post__header?: string;
+  post__header__date?: string;
+  post__title?: string;
+  post__thumbnail?: string;
+  post__content?: string;
+  post__media?: string;
+  post__media__item?: string;
+  post__tags?: string;
+  post__tag?: string;
+  post__footer?: string;
+  post__footer__link?: string;
+  /** @deprecated Use `post`. */
   toot?: string;
+  /** @deprecated Use `post__author`. */
   toot__author?: string;
+  /** @deprecated Use `post__author__avatar`. */
   toot__author__avatar?: string;
+  /** @deprecated Use `post__author__name`. */
   toot__author__name?: string;
+  /** @deprecated Use `post__header`. */
   toot__header?: string;
+  /** @deprecated Use `post__header__date`. */
   toot__header__date?: string;
+  /** @deprecated Use `post__title`. */
   toot__title?: string;
+  /** @deprecated Use `post__thumbnail`. */
   toot__thumbnail?: string;
+  /** @deprecated Use `post__content`. */
   toot__content?: string;
+  /** @deprecated Use `post__media`. */
   toot__media?: string;
+  /** @deprecated Use `post__media__item`. */
   toot__media__item?: string;
+  /** @deprecated Use `post__tags`. */
   toot__tags?: string;
+  /** @deprecated Use `post__tag`. */
   toot__tag?: string;
+  /** @deprecated Use `post__footer`. */
   toot__footer?: string;
+  /** @deprecated Use `post__footer__link`. */
   toot__footer__link?: string;
 };
 

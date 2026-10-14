@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
+
+`asmarss` is now **`astro-fedifeed`**. See "Migrating from asmarss" in the README.
 
 ### Added
 
@@ -15,6 +17,8 @@
 
 ### Changed
 
+- **Breaking:** the package is renamed to `astro-fedifeed` (`astro-fedifeed/feed`, `astro-fedifeed/types`), and log messages use the `[astro-fedifeed]` prefix.
+- `classList` keys starting with `toot` are renamed to `post` (`post`, `post__content`, `post__media`, …). The `toot` keys are deprecated: they still apply, and log a one-time warning.
 - **Breaking:** requires Node.js >= 24 and `astro` >= 6. CI now runs on Node.js 24 against Astro 6 and 7.
 
 ### Fixed

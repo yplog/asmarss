@@ -1,5 +1,5 @@
 {
-  "name": "asmarss-example",
+  "name": "astro-fedifeed-example",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,7 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "asmarss": "^0.8.0",
+    "astro-fedifeed": "^1.0.0",
     "astro": "^7.1.0"
   }
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
-import Asmarss from "../src/index.astro";
+import FediFeed from "../src/index.astro";
 import { clearFeedCache } from "../src/feed";
 
 const feedXml = readFileSync(
@@ -24,7 +24,7 @@ function mockFetch(body: string, status = 200) {
 
 async function render(props: Record<string, unknown> = {}) {
   const container = await AstroContainer.create();
-  return container.renderToString(Asmarss, { props: { url, ...props } });
+  return container.renderToString(FediFeed, { props: { url, ...props } });
 }
 
 beforeEach(() => {
@@ -37,7 +37,7 @@ afterEach(() => {
   clearFeedCache();
 });
 
-describe("Asmarss", () => {
+describe("FediFeed", () => {
   it("renders every toot and the see more link", async () => {
     mockFetch(feedXml);
     const html = await render();
@@ -85,7 +85,7 @@ describe("Asmarss", () => {
 
   it("applies classList entries", async () => {
     mockFetch(feedXml);
-    const html = await render({ classList: { toot: "my-toot" } });
+    const html = await render({ classList: { post: "my-toot" } });
     expect(html).toContain("my-toot");
   });
 
@@ -342,7 +342,7 @@ describe("Asmarss", () => {
       url: undefined,
       account: ["@test@example.social", "@o@other.social"],
       header: true,
-      classList: { toot__author: "au", toot__author__name: "an" },
+      classList: { post__author: "au", post__author__name: "an" },
     });
     expect(html.indexOf("Other toot")).toBeLessThan(
       html.indexOf("Second toot"),
@@ -374,7 +374,7 @@ describe("Asmarss", () => {
 
   it("doesn't add authors for a single feed", async () => {
     mockFetch(feedXml);
-    expect(await render({ classList: { toot__author: "au" } })).not.toContain(
+    expect(await render({ classList: { post__author: "au" } })).not.toContain(
       'class="au"',
     );
   });
@@ -402,7 +402,7 @@ describe("Asmarss", () => {
       url: undefined,
       channel: "@test_channel@tube.example",
       tags: true,
-      classList: { toot__title: "tt", toot__thumbnail: "th" },
+      classList: { post__title: "tt", post__thumbnail: "th" },
     });
     expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
       "https://tube.example/feeds/videos.xml?videoChannelName=test_channel",
@@ -471,7 +471,7 @@ describe("Asmarss", () => {
     mockFetch(emptyXml);
     await render({ platform: "myspace" });
     expect(console.warn).toHaveBeenCalledWith(
-      '[asmarss] Unknown platform "myspace"',
+      '[astro-fedifeed] Unknown platform "myspace"',
     );
   });
 
@@ -497,5 +497,24 @@ describe("Asmarss", () => {
     expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
       "https://tube.example/feeds/videos.xml?videoChannelName=c",
     );
+  });
+
+  it("maps deprecated toot classList keys to post and warns once", async () => {
+    mockFetch(feedXml);
+    const html = await render({
+      classList: { toot: "old", toot__content: "c", post__content: "new" },
+    });
+    expect(html).toMatch(/<article[^>]*class="old"/);
+    expect(html).toContain('class="new"');
+    expect(html).not.toContain('class="c"');
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'classList keys starting with "toot" are deprecated',
+      ),
+    );
+
+    vi.mocked(console.warn).mockClear();
+    await render({ classList: { toot: "old" } });
+    expect(console.warn).not.toHaveBeenCalled();
   });
 });

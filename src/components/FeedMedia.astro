@@ -10,19 +10,19 @@ interface Props {
 const { media, sensitiveLabel, classList = {} } = Astro.props;
 ---
 
-<div class={classList.toot__media}>
+<div class={classList.post__media}>
   {media.map((m) => {
     const item =
       m.medium === "image" ? (
         <img
-          class={classList.toot__media__item}
+          class={classList.post__media__item}
           src={m.url}
           alt={m.description}
           loading="lazy"
         />
       ) : m.medium === "video" ? (
         <video
-          class={classList.toot__media__item}
+          class={classList.post__media__item}
           src={m.url}
           poster={m.thumbnail}
           controls
@@ -30,14 +30,14 @@ const { media, sensitiveLabel, classList = {} } = Astro.props;
         />
       ) : m.medium === "audio" ? (
         <audio
-          class={classList.toot__media__item}
+          class={classList.post__media__item}
           src={m.url}
           controls
           preload="none"
         />
       ) : (
         <a
-          class={classList.toot__media__item}
+          class={classList.post__media__item}
           href={m.url}
           target="_blank"
           rel="noopener noreferrer"

@@ -155,7 +155,7 @@ export function reportError(
   onError?: ParseFeedOptions["onError"],
 ): void {
   if (onError) onError(error, url);
-  else console.warn(`[asmarss] Failed to load ${url}:`, error);
+  else console.warn(`[astro-fedifeed] Failed to load ${url}:`, error);
 }
 
 /** Like `reportError`, for a misconfiguration that doesn't stop the feed from loading. */
@@ -165,7 +165,7 @@ export function reportWarning(
   onError?: ParseFeedOptions["onError"],
 ): void {
   if (onError) onError(new Error(message), url);
-  else console.warn(`[asmarss] ${message}${url ? ` (${url})` : ""}`);
+  else console.warn(`[astro-fedifeed] ${message}${url ? ` (${url})` : ""}`);
 }
 
 class HttpError extends Error {

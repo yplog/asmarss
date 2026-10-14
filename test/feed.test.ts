@@ -30,7 +30,7 @@ afterEach(() => {
   clearFeedCache();
 });
 
-describe("asmarss/feed", () => {
+describe("astro-fedifeed/feed", () => {
   it("parses items, media and tags", async () => {
     vi.stubGlobal(
       "fetch",

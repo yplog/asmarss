@@ -1,5 +1,5 @@
 ---
-import Asmarss from "asmarss";
+import FediFeed from "astro-fedifeed";
 import "../styles.css";
 
 const classList = {
@@ -8,14 +8,16 @@ const classList = {
   feed__avatar: "feed__avatar",
   feed__title: "feed__title",
   feed__description: "feed__description",
-  toot: "toot",
-  toot__header: "toot__header",
-  toot__media: "toot__media",
-  toot__tags: "toot__tags",
-  toot__footer: "toot__footer",
-  toot__author: "toot__author",
-  toot__author__avatar: "toot__author__avatar",
-  toot__author__name: "toot__author__name",
+  post: "post",
+  post__header: "post__header",
+  post__media: "post__media",
+  post__tags: "post__tags",
+  post__footer: "post__footer",
+  post__author: "post__author",
+  post__author__avatar: "post__author__avatar",
+  post__author__name: "post__author__name",
+  post__title: "post__title",
+  post__thumbnail: "post__thumbnail",
 };
 ---
 
@@ -23,16 +25,19 @@ const classList = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>asmarss example</title>
+    <title>astro-fedifeed example</title>
   </head>
   <body>
-    <h1>asmarss</h1>
-    <p>Mastodon posts as an Astro component. Live data from mastodon.social.</p>
+    <h1>astro-fedifeed</h1>
+    <p>
+      Mastodon, Pixelfed and PeerTube posts as an Astro component. Live data
+      from mastodon.social, pixelfed.social and video.blender.org.
+    </p>
 
     <section class="demo">
       <h2>A single account</h2>
-      <pre>&lt;Asmarss account="@Mastodon@mastodon.social" header tags limit=&#123;3&#125; /&gt;</pre>
-      <Asmarss
+      <pre>&lt;FediFeed account="@Mastodon@mastodon.social" header tags limit=&#123;3&#125; /&gt;</pre>
+      <FediFeed
         account="@Mastodon@mastodon.social"
         header
         tags
@@ -43,8 +48,8 @@ const classList = {
 
     <section class="demo">
       <h2>Filtered by tag, with media only</h2>
-      <pre>&lt;Asmarss account="@Mastodon@mastodon.social" tag="Plushtodon" onlyWithMedia limit=&#123;2&#125; /&gt;</pre>
-      <Asmarss
+      <pre>&lt;FediFeed account="@Mastodon@mastodon.social" tag="Plushtodon" onlyWithMedia limit=&#123;2&#125; /&gt;</pre>
+      <FediFeed
         account="@Mastodon@mastodon.social"
         tag="Plushtodon"
         onlyWithMedia
@@ -55,10 +60,33 @@ const classList = {
 
     <section class="demo">
       <h2>Several accounts, merged</h2>
-      <pre>&lt;Asmarss account=&#123;["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]&#125; limit=&#123;4&#125; /&gt;</pre>
-      <Asmarss
+      <pre>&lt;FediFeed account=&#123;["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]&#125; limit=&#123;4&#125; /&gt;</pre>
+      <FediFeed
         account={["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]}
         limit={4}
+        classList={classList}
+      />
+    </section>
+
+    <section class="demo">
+      <h2>A Pixelfed account</h2>
+      <pre>&lt;FediFeed platform="pixelfed" account="@dansup@pixelfed.social" tags limit=&#123;2&#125; /&gt;</pre>
+      <FediFeed
+        platform="pixelfed"
+        account="@dansup@pixelfed.social"
+        tags
+        limit={2}
+        classList={classList}
+      />
+    </section>
+
+    <section class="demo">
+      <h2>A PeerTube channel</h2>
+      <pre>&lt;FediFeed channel="@blender_studio@video.blender.org" header limit=&#123;2&#125; /&gt;</pre>
+      <FediFeed
+        channel="@blender_studio@video.blender.org"
+        header
+        limit={2}
         classList={classList}
       />
     </section>

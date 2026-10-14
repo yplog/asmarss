@@ -57,12 +57,12 @@ const hasDate = !Number.isNaN(date.getTime());
 const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
 ---
 
-<article class={classList?.toot}>
+<article class={classList?.post}>
   {author && (author.title || author.image) && (
-    <div class={classList?.toot__author}>
+    <div class={classList?.post__author}>
       {author.image && (
         <img
-          class={classList?.toot__author__avatar}
+          class={classList?.post__author__avatar}
           src={author.image}
           alt=""
           loading="lazy"
@@ -71,7 +71,7 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       {author.title &&
         (author.link ? (
           <a
-            class={classList?.toot__author__name}
+            class={classList?.post__author__name}
             href={author.link}
             target="_blank"
             rel="noopener noreferrer"
@@ -79,19 +79,19 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
             {author.title}
           </a>
         ) : (
-          <span class={classList?.toot__author__name}>{author.title}</span>
+          <span class={classList?.post__author__name}>{author.title}</span>
         ))}
     </div>
   )}
   {hasDate && (
-    <header class={classList?.toot__header}>
-      <div class={classList?.toot__header__date}>
+    <header class={classList?.post__header}>
+      <div class={classList?.post__header__date}>
         <time datetime={date.toISOString()}>{dateString}</time>
       </div>
     </header>
   )}
   {title && (
-    <div class={classList?.toot__title}>
+    <div class={classList?.post__title}>
       {link ? (
         <a href={link} target="_blank" rel="noopener noreferrer">
           {title}
@@ -105,7 +105,7 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     (link ? (
       <a href={link} target="_blank" rel="noopener noreferrer">
         <img
-          class={classList?.toot__thumbnail}
+          class={classList?.post__thumbnail}
           src={thumbnail}
           alt={title ?? viewLabel}
           loading="lazy"
@@ -113,14 +113,14 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       </a>
     ) : (
       <img
-        class={classList?.toot__thumbnail}
+        class={classList?.post__thumbnail}
         src={thumbnail}
         alt={title ?? ""}
         loading="lazy"
       />
     ))}
   <div
-    class={classList?.toot__content}
+    class={classList?.post__content}
     set:html={sanitize ? sanitizeContent(content) : content}
   />
   {media.length > 0 && (
@@ -131,9 +131,9 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     />
   )}
   {tags.length > 0 && (
-    <ul class={classList?.toot__tags}>
+    <ul class={classList?.post__tags}>
       {tags.map((tag) => (
-        <li class={classList?.toot__tag}>
+        <li class={classList?.post__tag}>
           <a href={tagHref(tag)} target="_blank" rel="noopener noreferrer">
             #{tag}
           </a>
@@ -142,9 +142,9 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     </ul>
   )}
   {link && (
-    <footer class={classList?.toot__footer}>
+    <footer class={classList?.post__footer}>
       <a
-        class={classList?.toot__footer__link}
+        class={classList?.post__footer__link}
         href={link}
         target="_blank"
         rel="noopener noreferrer"
