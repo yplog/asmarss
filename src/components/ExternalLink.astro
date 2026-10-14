@@ -1,0 +1,19 @@
+---
+interface Props {
+  /** Opens in a new tab; without it the content is rendered in a `<span>`. */
+  href?: string | null;
+  class?: string;
+}
+
+const { href, class: className } = Astro.props;
+---
+
+{href ? (
+  <a class={className} href={href} target="_blank" rel="noopener noreferrer">
+    <slot />
+  </a>
+) : (
+  <span class={className}>
+    <slot />
+  </span>
+)}

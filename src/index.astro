@@ -3,6 +3,7 @@ import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
 import FeedHeader from "./components/FeedHeader.astro";
+import ExternalLink from "./components/ExternalLink.astro";
 import { parseFeed, parseFeeds } from "./lib/parseFeed";
 import { matchesFilter } from "./lib/filter";
 import { resolveSources } from "./lib/sources";
@@ -214,13 +215,8 @@ const visibleItems =
     </ul>
   )}
   {link && (
-    <a
-      class={classList.see_more}
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <ExternalLink class={classList.see_more} href={link}>
       {l.seeMore}
-    </a>
+    </ExternalLink>
   )}
 </section>

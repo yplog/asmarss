@@ -1,4 +1,5 @@
 ---
+import ExternalLink from "./ExternalLink.astro";
 import FeedMedia from "./FeedMedia.astro";
 import { formatDate } from "../lib/formatDate";
 import { sanitizeContent } from "../lib/sanitize";
@@ -84,19 +85,11 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
           loading="lazy"
         />
       )}
-      {author.title &&
-        (author.link ? (
-          <a
-            class={classList?.post__author__name}
-            href={author.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {author.title}
-          </a>
-        ) : (
-          <span class={classList?.post__author__name}>{author.title}</span>
-        ))}
+      {author.title && (
+        <ExternalLink class={classList?.post__author__name} href={author.link}>
+          {author.title}
+        </ExternalLink>
+      )}
     </div>
   )}
   {hasDate && (
@@ -108,13 +101,7 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
   )}
   {title && (
     <div class={classList?.post__title}>
-      {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer">
-          {title}
-        </a>
-      ) : (
-        title
-      )}
+      {link ? <ExternalLink href={link}>{title}</ExternalLink> : title}
     </div>
   )}
   {embedSrc ? (
@@ -133,14 +120,14 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
   ) : (
     thumbnail &&
     (link ? (
-      <a href={link} target="_blank" rel="noopener noreferrer">
+      <ExternalLink href={link}>
         <img
           class={classList?.post__thumbnail}
           src={thumbnail}
           alt={title ?? viewLabel}
           loading="lazy"
         />
-      </a>
+      </ExternalLink>
     ) : (
       <img
         class={classList?.post__thumbnail}
@@ -165,23 +152,16 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
     <ul class={classList?.post__tags}>
       {tags.map((tag) => (
         <li class={classList?.post__tag}>
-          <a href={tagHref(tag)} target="_blank" rel="noopener noreferrer">
-            #{tag}
-          </a>
+          <ExternalLink href={tagHref(tag)}>#{tag}</ExternalLink>
         </li>
       ))}
     </ul>
   )}
   {link && (
     <footer class={classList?.post__footer}>
-      <a
-        class={classList?.post__footer__link}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <ExternalLink class={classList?.post__footer__link} href={link}>
         {viewLabel}
-      </a>
+      </ExternalLink>
     </footer>
   )}
 </article>
