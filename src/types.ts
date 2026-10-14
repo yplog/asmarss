@@ -18,6 +18,7 @@ export type ClassList = {
   post__header__date?: string;
   post__title?: string;
   post__thumbnail?: string;
+  post__embed?: string;
   post__content?: string;
   post__media?: string;
   post__media__item?: string;
@@ -95,6 +96,8 @@ export type FeedEntry = {
   title?: string;
   /** Post-level preview image, e.g. a PeerTube video thumbnail. */
   thumbnail?: string;
+  /** Player URL for an iframe (`media:embed`), e.g. a PeerTube video. */
+  embed?: string;
   source?: FeedSource;
 };
 

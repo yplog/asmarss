@@ -71,6 +71,8 @@ interface Options {
   seperator?: boolean;
   /** Render attached images, videos and audio. Defaults to `true`. */
   media?: boolean;
+  /** Play videos in the page through the feed's player (PeerTube). Defaults to `false`. */
+  embed?: boolean;
   /** Render a hashtag list for each post. Defaults to `false`. */
   tags?: boolean;
   /** Override the built-in (English) texts. */
@@ -113,6 +115,7 @@ const {
   separator,
   seperator,
   media = true,
+  embed = false,
   tags = false,
   labels,
   locale,
@@ -288,6 +291,7 @@ const visibleItems =
             content={item.content}
             title={item.title}
             thumbnail={media ? item.thumbnail : undefined}
+            embed={media && embed ? item.embed : undefined}
             platform={itemPlatform}
             labels={l}
             media={media ? item.media : []}

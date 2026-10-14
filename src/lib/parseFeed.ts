@@ -90,11 +90,13 @@ function entry(
 ): FeedEntry {
   const title = text(item.title).trim();
   const thumbnail = firstThumbnail(item);
+  const embed = safeUrl((item["media:embed"] as Raw | undefined)?.["@_url"]);
   return {
     ...fields,
     media: parseMediaList(item),
     ...(title && { title }),
     ...(thumbnail && { thumbnail }),
+    ...(embed && { embed }),
   };
 }
 

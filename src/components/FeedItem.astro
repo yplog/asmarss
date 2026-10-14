@@ -18,6 +18,8 @@ interface Props {
   title?: string;
   /** Preview image linking to the post, e.g. a PeerTube video thumbnail. */
   thumbnail?: string;
+  /** Player URL; replaces the thumbnail with an iframe when it is on the post's origin. */
+  embed?: string;
   platform?: Platform;
   labels: Required<Labels>;
   media?: FeedMediaType[];
@@ -37,6 +39,7 @@ const {
   link,
   title,
   thumbnail,
+  embed,
   platform = "mastodon",
   labels,
   media = [],
@@ -51,6 +54,19 @@ const {
 
 const tagHref = (tag: string) => tagUrl(platform, tag, instanceUrl ?? link);
 const viewLabel = labels[viewLabels[platform]];
+
+// Only https players on the post's own instance are framed.
+const embedSrc = (() => {
+  if (!embed || !link) return undefined;
+  try {
+    const src = new URL(embed);
+    return src.protocol === "https:" && src.origin === new URL(link).origin
+      ? embed
+      : undefined;
+  } catch {
+    return undefined;
+  }
+})();
 
 const date = new Date(pubDate);
 const hasDate = !Number.isNaN(date.getTime());
@@ -101,7 +117,21 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       )}
     </div>
   )}
-  {thumbnail &&
+  {embedSrc ? (
+    <iframe
+      class={classList?.post__embed}
+      src={embedSrc}
+      title={title ?? viewLabel}
+      width="560"
+      height="315"
+      loading="lazy"
+      allowfullscreen
+      allow="fullscreen; picture-in-picture"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+      referrerpolicy="strict-origin-when-cross-origin"
+    />
+  ) : (
+    thumbnail &&
     (link ? (
       <a href={link} target="_blank" rel="noopener noreferrer">
         <img
@@ -118,7 +148,8 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
         alt={title ?? ""}
         loading="lazy"
       />
-    ))}
+    ))
+  )}
   <div
     class={classList?.post__content}
     set:html={sanitize ? sanitizeContent(content) : content}
