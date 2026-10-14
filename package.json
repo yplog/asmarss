@@ -1,6 +1,6 @@
 {
   "name": "astro-fedifeed",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An Astro component that renders the latest posts of a Mastodon or Pixelfed account or a PeerTube account or channel from its RSS / Atom feed.",
   "author": {
     "name": "Yalın Pala",

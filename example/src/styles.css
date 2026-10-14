@@ -5,7 +5,7 @@
 }
 
 body {
-  max-width: 44rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: 2rem 1rem 4rem;
 }
@@ -15,7 +15,48 @@ h1 {
 }
 
 section.demo {
+  max-width: 44rem;
   margin-top: 3rem;
+}
+
+/* Three columns side by side, stacked on narrow screens. */
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  align-items: start;
+}
+
+.platform {
+  min-width: 0;
+}
+
+.platform h2 {
+  margin-top: 0;
+}
+
+.platform pre {
+  white-space: pre-wrap;
+  font-size: 0.72rem;
+}
+
+/* Keep the three columns at a similar height. */
+.platform .feed__description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.platform .post__content {
+  max-height: 8.5em;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+
+.platform .post__media img {
+  aspect-ratio: 4 / 3;
 }
 
 pre {
@@ -65,6 +106,7 @@ pre {
 }
 
 .post {
+  overflow-wrap: anywhere;
   padding: 1rem;
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-radius: 0.75rem;
@@ -84,7 +126,11 @@ pre {
 
 .post__media img,
 .post__media video {
-  max-width: 100%;
+  display: block;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  max-height: 20rem;
+  object-fit: cover;
   border-radius: 0.5rem;
 }
 

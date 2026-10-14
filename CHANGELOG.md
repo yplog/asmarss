@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+### Changed
+
+- README: the npm badge uses shields.io, and the screenshot (now `.github/assets/demo.jpg`) shows Mastodon, Pixelfed and PeerTube side by side. The example project starts with the same three-column layout.
+
 ## 1.0.0
 
 `asmarss` is now **`astro-fedifeed`**. See "Migrating from asmarss" in the README.

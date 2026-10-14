@@ -10,6 +10,7 @@ const classList = {
   feed__description: "feed__description",
   post: "post",
   post__header: "post__header",
+  post__content: "post__content",
   post__media: "post__media",
   post__tags: "post__tags",
   post__footer: "post__footer",
@@ -34,20 +35,52 @@ const classList = {
       from mastodon.social, pixelfed.social and video.blender.org.
     </p>
 
-    <section class="demo">
-      <h2>A single account</h2>
-      <pre>&lt;FediFeed account="@Mastodon@mastodon.social" header tags limit=&#123;3&#125; /&gt;</pre>
-      <FediFeed
-        account="@Mastodon@mastodon.social"
-        header
-        tags
-        limit={3}
-        classList={classList}
-      />
+    <section class="platforms">
+      <div class="platform">
+        <h2>Mastodon</h2>
+        <pre>&lt;FediFeed
+  account="@Mastodon@mastodon.social"
+  header tags limit=&#123;1&#125; /&gt;</pre>
+        <FediFeed
+          account="@Mastodon@mastodon.social"
+          header
+          tags
+          limit={1}
+          classList={classList}
+        />
+      </div>
+
+      <div class="platform">
+        <h2>Pixelfed</h2>
+        <pre>&lt;FediFeed platform="pixelfed"
+  account="@dansup@pixelfed.social"
+  header tags limit=&#123;1&#125; /&gt;</pre>
+        <FediFeed
+          platform="pixelfed"
+          account="@dansup@pixelfed.social"
+          header
+          tags
+          limit={1}
+          classList={classList}
+        />
+      </div>
+
+      <div class="platform">
+        <h2>PeerTube</h2>
+        <pre>&lt;FediFeed
+  channel="@blender_studio@video.blender.org"
+  header limit=&#123;1&#125; /&gt;</pre>
+        <FediFeed
+          channel="@blender_studio@video.blender.org"
+          header
+          limit={1}
+          classList={classList}
+        />
+      </div>
     </section>
 
     <section class="demo">
-      <h2>Filtered by tag, with media only</h2>
+      <h2>Filtered by tag, with media only (Mastodon)</h2>
       <pre>&lt;FediFeed account="@Mastodon@mastodon.social" tag="Plushtodon" onlyWithMedia limit=&#123;2&#125; /&gt;</pre>
       <FediFeed
         account="@Mastodon@mastodon.social"
@@ -64,29 +97,6 @@ const classList = {
       <FediFeed
         account={["@Mastodon@mastodon.social", "@Gargron@mastodon.social"]}
         limit={4}
-        classList={classList}
-      />
-    </section>
-
-    <section class="demo">
-      <h2>A Pixelfed account</h2>
-      <pre>&lt;FediFeed platform="pixelfed" account="@dansup@pixelfed.social" tags limit=&#123;2&#125; /&gt;</pre>
-      <FediFeed
-        platform="pixelfed"
-        account="@dansup@pixelfed.social"
-        tags
-        limit={2}
-        classList={classList}
-      />
-    </section>
-
-    <section class="demo">
-      <h2>A PeerTube channel</h2>
-      <pre>&lt;FediFeed channel="@blender_studio@video.blender.org" header limit=&#123;2&#125; /&gt;</pre>
-      <FediFeed
-        channel="@blender_studio@video.blender.org"
-        header
-        limit={2}
         classList={classList}
       />
     </section>

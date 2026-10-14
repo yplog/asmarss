@@ -1,6 +1,6 @@
 # astro-fedifeed
 
-[![npm version](https://badge.fury.io/js/astro-fedifeed.svg)](https://badge.fury.io/js/astro-fedifeed)
+[![npm version](https://img.shields.io/npm/v/astro-fedifeed)](https://www.npmjs.com/package/astro-fedifeed)
 
 An Astro component that renders the latest posts of a fediverse account from its
 public RSS / Atom feed: Mastodon and Pixelfed accounts, and PeerTube accounts and
@@ -10,7 +10,7 @@ channels. No API calls and no tokens.
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/yplog/astro-fedifeed/tree/main/example)
 
-<img src="https://raw.githubusercontent.com/yplog/astro-fedifeed/main/.github/assets/demo.png" alt="astro-fedifeed rendering the latest posts of @Mastodon@mastodon.social" width="520">
+<img src="https://raw.githubusercontent.com/yplog/astro-fedifeed/main/.github/assets/demo.jpg" alt="astro-fedifeed rendering the latest post of a Mastodon account, a Pixelfed account and a PeerTube channel side by side">
 
 ## Installation
 
@@ -277,8 +277,9 @@ Post content is rendered as HTML (`set:html`) after being sanitized with [saniti
 ## Example
 
 [`example/`](example) is a small Astro project that renders live posts from
-mastodon.social, pixelfed.social and video.blender.org: a single account with a
-header, a tag filter, merged feeds, a Pixelfed account and a PeerTube channel.
+mastodon.social, pixelfed.social and video.blender.org: a Mastodon account, a
+Pixelfed account and a PeerTube channel side by side (the screenshot above), then a
+tag filter and merged feeds.
 Open it in StackBlitz with the badge above, or run it locally:
 
 ```bash
