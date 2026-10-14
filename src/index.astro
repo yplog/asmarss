@@ -3,26 +3,11 @@ import FeedItem from "./components/FeedItem.astro";
 import ErrorLoadingFeed from "./components/ErrorLoadingFeed.astro";
 import NoItemsInFeed from "./components/NoItemsInFeed.astro";
 import FeedHeader from "./components/FeedHeader.astro";
-import {
-  parseFeed,
-  parseFeeds,
-  reportError,
-  reportWarning,
-} from "./lib/parseFeed";
+import { parseFeed, parseFeeds } from "./lib/parseFeed";
 import { matchesFilter } from "./lib/filter";
-import {
-  mastodonFeedUrl,
-  peertubeFeedUrl,
-  pixelfedFeedUrl,
-} from "./lib/feedUrl";
+import { resolveSources } from "./lib/sources";
 import { defaultLabels } from "./lib/labels";
-import {
-  detectPlatform,
-  mastodonOnlyOptions,
-  normalizeEntry,
-  platforms,
-  type Platform,
-} from "./lib/platforms";
+import { normalizeEntry, type Platform } from "./lib/platforms";
 import type { ClassList, Labels, ParsedFeed } from "./types";
 
 type Source =
@@ -101,7 +86,7 @@ interface Options {
 type Props = Source & Options;
 
 const {
-  url: urlProp,
+  url,
   account,
   channel,
   instance,
@@ -128,98 +113,24 @@ const {
 }: Props = Astro.props;
 const l = { ...defaultLabels, ...labels };
 
-const toList = (value: string | string[] | undefined) =>
-  value === undefined ? [] : Array.isArray(value) ? value : [value];
-
-let platformProp = platform;
-if (platformProp !== undefined && !platforms.includes(platformProp)) {
-  reportWarning(`Unknown platform "${platformProp}"`, "", onError);
-  platformProp = undefined;
-}
-if (channel !== undefined && platformProp && platformProp !== "peertube") {
-  reportWarning(
-    "`channel` only works with PeerTube; using PeerTube",
-    "",
-    onError,
-  );
-}
-const handlePlatform: Platform =
-  channel !== undefined ? "peertube" : (platformProp ?? "mastodon");
-
-const feedUrlOptions = { tag, onlyMedia: onlyWithMedia, replies };
-const peertubeOptions = { channel: channel !== undefined };
-function buildUrl(first: string, second?: string): string | null {
-  switch (handlePlatform) {
-    case "pixelfed":
-      return pixelfedFeedUrl(first, second);
-    case "peertube":
-      return second === undefined
-        ? peertubeFeedUrl(first, peertubeOptions)
-        : peertubeFeedUrl(first, second, peertubeOptions);
-    default:
-      return second === undefined
-        ? mastodonFeedUrl(first, feedUrlOptions)
-        : mastodonFeedUrl(first, second, feedUrlOptions);
-  }
-}
-
-// url > account > channel > instance + username
-type ResolvedSource = {
-  given: string;
-  url: string | null;
-  platform: Platform;
-};
-const handles = account ?? channel;
-const sources: ResolvedSource[] =
-  urlProp !== undefined
-    ? toList(urlProp).map((u) => ({
-        given: u,
-        url: u || null,
-        platform: platformProp ?? detectPlatform(u),
-      }))
-    : handles !== undefined
-      ? toList(handles).map((h) => ({
-          given: h,
-          url: buildUrl(h),
-          platform: handlePlatform,
-        }))
-      : instance !== undefined && username !== undefined
-        ? [
-            {
-              given: `${instance} ${username}`,
-              url: buildUrl(instance, username),
-              platform: handlePlatform,
-            },
-          ]
-        : [];
-
-const usedMastodonOnly = mastodonOnlyOptions.filter(
-  (name) => ({ tag, replies, onlyWithMedia })[name],
+const sources = resolveSources(
+  {
+    url,
+    account,
+    channel,
+    instance,
+    username,
+    platform,
+    tag,
+    replies,
+    onlyWithMedia,
+  },
+  onError,
 );
-const urls: string[] = [];
-const platformByUrl = new Map<string, Platform>();
-for (const source of sources) {
-  if (!source.url) {
-    reportError(
-      new Error("Invalid or missing feed source"),
-      source.given.trim(),
-      onError,
-    );
-    continue;
-  }
-  urls.push(source.url);
-  platformByUrl.set(source.url, source.platform);
-  if (source.platform !== "mastodon" && usedMastodonOnly.length > 0) {
-    reportWarning(
-      `Ignoring Mastodon-only options on ${source.platform}: ${usedMastodonOnly.join(", ")}`,
-      source.url,
-      onError,
-    );
-  }
-}
-if (sources.length === 0) {
-  reportError(new Error("Invalid or missing feed source"), "", onError);
-}
+const urls = sources.map((source) => source.url);
+const platformByUrl = new Map(
+  sources.map((source) => [source.url, source.platform]),
+);
 
 const feedOptions = {
   timeoutMs: timeout,
