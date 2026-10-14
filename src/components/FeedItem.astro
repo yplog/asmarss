@@ -2,6 +2,7 @@
 import FeedMedia from "./FeedMedia.astro";
 import { formatDate } from "../lib/formatDate";
 import { sanitizeContent } from "../lib/sanitize";
+import { tagUrl, viewLabels, type Platform } from "../lib/platforms";
 import type {
   ClassList,
   FeedMedia as FeedMediaType,
@@ -13,6 +14,11 @@ interface Props {
   pubDate: string;
   content: string;
   link: string;
+  /** Post title, e.g. a PeerTube video title. */
+  title?: string;
+  /** Preview image linking to the post, e.g. a PeerTube video thumbnail. */
+  thumbnail?: string;
+  platform?: Platform;
   labels: Required<Labels>;
   media?: FeedMediaType[];
   tags?: string[];
@@ -29,6 +35,9 @@ const {
   pubDate,
   content,
   link,
+  title,
+  thumbnail,
+  platform = "mastodon",
   labels,
   media = [],
   tags = [],
@@ -40,14 +49,8 @@ const {
   classList,
 } = Astro.props;
 
-function tagHref(tag: string) {
-  try {
-    return new URL(`/tags/${encodeURIComponent(tag)}`, instanceUrl ?? link)
-      .href;
-  } catch {
-    return undefined;
-  }
-}
+const tagHref = (tag: string) => tagUrl(platform, tag, instanceUrl ?? link);
+const viewLabel = labels[viewLabels[platform]];
 
 const date = new Date(pubDate);
 const hasDate = !Number.isNaN(date.getTime());
@@ -87,6 +90,35 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
       </div>
     </header>
   )}
+  {title && (
+    <div class={classList?.toot__title}>
+      {link ? (
+        <a href={link} target="_blank" rel="noopener noreferrer">
+          {title}
+        </a>
+      ) : (
+        title
+      )}
+    </div>
+  )}
+  {thumbnail &&
+    (link ? (
+      <a href={link} target="_blank" rel="noopener noreferrer">
+        <img
+          class={classList?.toot__thumbnail}
+          src={thumbnail}
+          alt={title ?? viewLabel}
+          loading="lazy"
+        />
+      </a>
+    ) : (
+      <img
+        class={classList?.toot__thumbnail}
+        src={thumbnail}
+        alt={title ?? ""}
+        loading="lazy"
+      />
+    ))}
   <div
     class={classList?.toot__content}
     set:html={sanitize ? sanitizeContent(content) : content}
@@ -117,7 +149,7 @@ const dateString = hasDate ? formatDate(date, { locale, timeZone }) : "";
         target="_blank"
         rel="noopener noreferrer"
       >
-        {labels.viewOnMastodon}
+        {viewLabel}
       </a>
     </footer>
   )}

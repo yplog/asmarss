@@ -2,11 +2,15 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearFeedCache,
+  detectPlatform,
   filterItems,
   formatDate,
   mastodonFeedUrl,
+  normalizeEntry,
   parseFeed,
   parseFeeds,
+  peertubeFeedUrl,
+  pixelfedFeedUrl,
   sanitizeContent,
 } from "../src/feed";
 import type { FeedEntry } from "../src/feed";
@@ -591,5 +595,75 @@ describe("parseFeeds", () => {
       [otherUrl]: new Response("", { status: 500 }),
     });
     expect((await parseFeeds([url, otherUrl])).items).toBeNull();
+  });
+});
+
+describe("pixelfedFeedUrl", () => {
+  it("builds the Atom address from a handle or an instance and a username", () => {
+    expect(pixelfedFeedUrl("@dansup@pixelfed.social")).toBe(
+      "https://pixelfed.social/users/dansup.atom",
+    );
+    expect(pixelfedFeedUrl("pixelfed.social", "@dansup")).toBe(
+      "https://pixelfed.social/users/dansup.atom",
+    );
+    expect(pixelfedFeedUrl("dansup")).toBeNull();
+    expect(pixelfedFeedUrl("pixelfed.social", "bad name")).toBeNull();
+  });
+});
+
+describe("peertubeFeedUrl", () => {
+  it("builds account and channel addresses", () => {
+    const base = "https://video.blender.org/feeds/videos.xml";
+    expect(peertubeFeedUrl("@blender@video.blender.org")).toBe(
+      `${base}?accountName=blender`,
+    );
+    expect(
+      peertubeFeedUrl("blender_studio@video.blender.org", { channel: true }),
+    ).toBe(`${base}?videoChannelName=blender_studio`);
+    expect(
+      peertubeFeedUrl("video.blender.org", "blender_studio", { channel: true }),
+    ).toBe(`${base}?videoChannelName=blender_studio`);
+    expect(peertubeFeedUrl("javascript:alert(1)", "x")).toBeNull();
+  });
+});
+
+describe("detectPlatform", () => {
+  it("recognises Pixelfed and PeerTube feed addresses", () => {
+    expect(detectPlatform("https://pixelfed.social/users/dansup.atom")).toBe(
+      "pixelfed",
+    );
+    expect(
+      detectPlatform("https://tube.example/feeds/videos.xml?accountName=x"),
+    ).toBe("peertube");
+    expect(
+      detectPlatform("https://tube.example/feeds/videos.atom?format=atom"),
+    ).toBe("peertube");
+    expect(detectPlatform("https://mastodon.social/@user.rss")).toBe(
+      "mastodon",
+    );
+    expect(detectPlatform("not a url")).toBe("mastodon");
+  });
+});
+
+describe("normalizeEntry", () => {
+  it("strips the Pixelfed gallery and title and reads hashtag links", async () => {
+    serve(fixture("pixelfed.atom"));
+    const [post] = (await parseFeed(url)).items ?? [];
+    const pixelfed = normalizeEntry(post, "pixelfed");
+    expect(pixelfed).not.toHaveProperty("title");
+    expect(pixelfed.content).toMatch(/^<p /);
+    expect(pixelfed.content).not.toContain("media-gallery");
+    expect(pixelfed.tags).toEqual(["nature"]);
+    expect(pixelfed.media).toHaveLength(1);
+  });
+
+  it("drops PeerTube categories and leaves Mastodon posts alone", async () => {
+    serve(fixture("peertube.xml"));
+    const [video] = (await parseFeed(url)).items ?? [];
+    expect(normalizeEntry(video, "peertube")).toMatchObject({
+      title: "Making of: the first video",
+      tags: [],
+    });
+    expect(normalizeEntry(video, "mastodon")).toBe(video);
   });
 });

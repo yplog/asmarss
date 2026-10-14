@@ -16,6 +16,8 @@ export type ClassList = {
   toot__author__name?: string;
   toot__header?: string;
   toot__header__date?: string;
+  toot__title?: string;
+  toot__thumbnail?: string;
   toot__content?: string;
   toot__media?: string;
   toot__media__item?: string;
@@ -28,6 +30,8 @@ export type ClassList = {
 export type Labels = {
   seeMore?: string;
   viewOnMastodon?: string;
+  viewOnPixelfed?: string;
+  viewOnPeerTube?: string;
   errorLoadingFeed?: string;
   noItemsInFeed?: string;
   sensitiveContent?: string;

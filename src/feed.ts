@@ -9,7 +9,13 @@ export type {
   MergedFeed,
   ParsedFeed,
 } from "./types";
-export { mastodonFeedUrl } from "./lib/feedUrl";
-export type { FeedUrlOptions } from "./lib/feedUrl";
+export {
+  mastodonFeedUrl,
+  peertubeFeedUrl,
+  pixelfedFeedUrl,
+} from "./lib/feedUrl";
+export type { FeedUrlOptions, PeerTubeFeedUrlOptions } from "./lib/feedUrl";
+export { detectPlatform, normalizeEntry } from "./lib/platforms";
+export type { Platform } from "./lib/platforms";
 export { filterItems } from "./lib/filter";
 export type { FilterOptions } from "./lib/filter";

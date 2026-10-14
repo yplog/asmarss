@@ -9,14 +9,21 @@ export type FilterOptions = {
 
 export const normalizeTag = (tag: string) => tag.trim().replace(/^#/, "");
 
+/** Whether a single post passes the filters. */
+export function matchesFilter(
+  item: FeedEntry,
+  { onlyWithMedia, tag }: FilterOptions = {},
+): boolean {
+  const wanted = tag ? normalizeTag(tag).toLowerCase() : "";
+  return (
+    (!onlyWithMedia || item.media.length > 0) &&
+    (!wanted || item.tags.some((t) => t.toLowerCase() === wanted))
+  );
+}
+
 export function filterItems(
   items: FeedEntry[],
-  { onlyWithMedia, tag }: FilterOptions = {},
+  options: FilterOptions = {},
 ): FeedEntry[] {
-  const wanted = tag ? normalizeTag(tag).toLowerCase() : "";
-  return items.filter(
-    (item) =>
-      (!onlyWithMedia || item.media.length > 0) &&
-      (!wanted || item.tags.some((t) => t.toLowerCase() === wanted)),
-  );
+  return items.filter((item) => matchesFilter(item, options));
 }

@@ -158,6 +158,16 @@ export function reportError(
   else console.warn(`[asmarss] Failed to load ${url}:`, error);
 }
 
+/** Like `reportError`, for a misconfiguration that doesn't stop the feed from loading. */
+export function reportWarning(
+  message: string,
+  url: string,
+  onError?: ParseFeedOptions["onError"],
+): void {
+  if (onError) onError(new Error(message), url);
+  else console.warn(`[asmarss] ${message}${url ? ` (${url})` : ""}`);
+}
+
 class HttpError extends Error {
   constructor(readonly status: number) {
     super(`HTTP ${status}`);
